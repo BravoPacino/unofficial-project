@@ -48,7 +48,7 @@ export default function Residences() {
   }, [])
 
   return (
-    <section ref={sectionRef} id="residences" style={{
+    <section ref={sectionRef} id="residences" className="res-section" style={{
       background: '#161512',
       padding: '8rem 4rem'
     }}>
@@ -80,10 +80,10 @@ export default function Residences() {
         </SplitText>
         
         </div>
-        <p style={{
+        <p className="res-intro" style={{
           fontSize: '0.72rem', color: 'rgba(240,232,213,0.5)',
           maxWidth: 260, textAlign: 'right', lineHeight: 1.9
-        }}>Two typologies, crafted for lives<br />lived with intention and grace.</p>
+        }}>Two typologies, crafted for lives <br />lived with intention and grace.</p>
       </div>
 
       <div style={{
@@ -162,6 +162,15 @@ export default function Residences() {
           </div>
         ))}
       </div>
+
+      <style>{`
+        @media (max-width: 760px) {
+          .res-section { padding: 6rem 1.5rem !important; }
+          .res-header { flex-direction: column; align-items: flex-start !important; gap: 1.2rem; }
+          .res-intro { text-align: left !important; }
+          .res-intro br { display: none; }
+        }
+      `}</style>
     </section>
   )
 }

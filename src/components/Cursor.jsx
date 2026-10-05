@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 
 export default function Cursor() {
@@ -9,8 +9,10 @@ export default function Cursor() {
   const rx = useRef(0)
   const ry = useRef(0)
   const requestRef = useRef() 
+  const [enabled] = useState(() => window.matchMedia('(hover: hover) and (pointer: fine)').matches)
 
   useEffect(() => {
+    if (!enabled) return
     const onMove = (e) => {
       if (!dotRef.current) return 
       mx.current = e.clientX
@@ -58,7 +60,9 @@ export default function Cursor() {
         cancelAnimationFrame(requestRef.current)
       }
     }
-  }, [])
+  }, [enabled])
+
+  if (!enabled) return null
 
   return (
     <>

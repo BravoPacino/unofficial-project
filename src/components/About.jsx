@@ -55,7 +55,7 @@ export default function About() {
 ]
 
   return (
-    <section ref={sectionRef} id="about" style={{
+    <section ref={sectionRef} id="about" className="about-section" style={{
       background: '#0e0d0b',
       padding: '10rem 4rem',
       display: 'grid',
@@ -98,7 +98,7 @@ export default function About() {
         </p>
       </div>
 
-      <div style={{
+      <div className="about-stats" style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '1px',
@@ -132,6 +132,13 @@ export default function About() {
         ))}
       
       </div>
+
+      <style>{`
+        @media (max-width: 760px) {
+          .about-section { grid-template-columns: 1fr !important; gap: 3.5rem !important; padding: 6rem 1.5rem !important; }
+          .about-stats .stat-card { padding: 1.6rem 1.2rem !important; }
+        }
+      `}</style>
     </section>
   )
 }

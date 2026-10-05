@@ -13,11 +13,12 @@ body {
   color: #f0e8d5;
   font-family: 'Jost', sans-serif;
   overflow-x: hidden;
-  cursor: none;
-  cursor: none !important;
 }
-a, button, input, textarea, select, [role="button"], .interactive-group {
-  cursor: none !important;
+@media (hover: hover) and (pointer: fine) {
+  body,
+  a, button, input, textarea, select, [role="button"], .interactive-group {
+    cursor: none !important;
+  }
 }
 html, body {
   -ms-overflow-style: none !important;

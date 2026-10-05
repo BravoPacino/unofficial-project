@@ -96,14 +96,24 @@ export default function Masterplan() {
             .forEach(li => li.classList.remove('active'))
     }
 
+    let picked = null
+    const pick = (targetId) => {
+      if (picked && picked !== targetId) deactivate(picked)
+      picked = targetId
+      activate(targetId)
+    }
+
     const listItems = listEl.querySelectorAll('.facility-item')
     listItems.forEach(li => {
       const onEnter = () => activate(li.dataset.target)
       const onLeave = () => deactivate(li.dataset.target)
+      const onPick = () => pick(li.dataset.target)
       li.addEventListener('mouseenter', onEnter)
       li.addEventListener('mouseleave', onLeave)
+      li.addEventListener('click', onPick)
       li._onEnter = onEnter
       li._onLeave = onLeave
+      li._onPick = onPick
     })
 
     const svgGroups = svgEl.querySelectorAll('.interactive-group')
@@ -112,23 +122,31 @@ export default function Masterplan() {
       const onEnter = () => {
         activate(targetId)
         const firstMatch = listEl.querySelector(`[data-target="${targetId}"]`)
-        if (firstMatch) firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        if (firstMatch && listEl.scrollHeight > listEl.clientHeight + 1) {
+          const offset = firstMatch.getBoundingClientRect().top - listEl.getBoundingClientRect().top
+          listEl.scrollBy({ top: offset - (listEl.clientHeight - firstMatch.offsetHeight) / 2, behavior: 'smooth' })
+        }
       }
       const onLeave = () => deactivate(targetId)
+      const onPick = () => pick(targetId)
       group.addEventListener('mouseenter', onEnter)
       group.addEventListener('mouseleave', onLeave)
+      group.addEventListener('click', onPick)
       group._onEnter = onEnter
       group._onLeave = onLeave
+      group._onPick = onPick
     })
 
     return () => {
       listItems.forEach(li => {
         li.removeEventListener('mouseenter', li._onEnter)
         li.removeEventListener('mouseleave', li._onLeave)
+        li.removeEventListener('click', li._onPick)
       })
       svgGroups.forEach(group => {
         group.removeEventListener('mouseenter', group._onEnter)
         group.removeEventListener('mouseleave', group._onLeave)
+        group.removeEventListener('click', group._onPick)
       })
     }
   }, [])
@@ -146,9 +164,11 @@ export default function Masterplan() {
          .forEach(g => g.classList.remove('active'))
   }
 
+  const mm = gsap.matchMedia()
+  mm.add('(min-width: 761px)', () => {
   resetAll()
 
-  const st = ScrollTrigger.create({
+  ScrollTrigger.create({
     trigger: sectionRef.current,
     start: 'top -30%',
     end: () => `+=${total * 130}`,
@@ -179,11 +199,14 @@ export default function Masterplan() {
     onLeaveBack: resetAll,
   })
 
-  return () => st.kill()
+  return resetAll
+  })
+
+  return () => mm.revert()
 }, [])
 
   return (
-    <section ref={sectionRef} id="masterplan" style={{
+    <section ref={sectionRef} id="masterplan" className="mp-section" style={{
       background: '#0e0d0b',
       padding: '8rem 4rem',
     }}>
@@ -228,10 +251,31 @@ export default function Masterplan() {
           background: transparent !important;
         }
 
+        .mp-hint-touch { display: none; }
+        @media (hover: none) {
+          .mp-hint-hover { display: none; }
+          .mp-hint-touch { display: inline; }
+        }
+
+        @media (max-width: 760px) {
+          .mp-section { padding: 6rem 1.5rem !important; }
+          .mp-head { margin-bottom: 2rem !important; }
+          .mp-grid { display: block !important; height: auto !important; }
+          .mp-map {
+            top: 5.2rem !important; height: 44vh !important; z-index: 2;
+            background: #0e0d0b; padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(200,168,107,0.15);
+          }
+          .mp-svg { height: 100% !important; }
+          .masterplan-list { height: auto !important; overflow: visible !important; padding: 1.5rem 0 0 !important; }
+          .masterplan-list ul { columns: 2; column-gap: 0.8rem; }
+          .masterplan-list .facility-item { break-inside: avoid; padding: 0.5rem 0.6rem; }
+        }
+
 
       `}</style>
 
-      <div style={{ marginBottom: '4rem' }}>
+      <div className="mp-head" style={{ marginBottom: '4rem' }}>
         <p style={{
           fontSize: '0.58rem', letterSpacing: '0.28em',
           textTransform: 'uppercase', color: '#c8a86b',
@@ -247,10 +291,13 @@ export default function Masterplan() {
           fontSize: '0.72rem',
           color: 'rgba(240,232,213,0.4)',
           letterSpacing: '0.06em'
-        }}>Hover any zone to discover the facilities within</p>
+        }}>
+          <span className="mp-hint-hover">Hover any zone to discover the facilities within</span>
+          <span className="mp-hint-touch">Tap a facility to find it on the plan</span>
+        </p>
       </div>
 
-      <div style={{
+      <div className="mp-grid" style={{
         display: 'grid',
         gridTemplateColumns: '1.2fr 0.8fr',
         gap: '2rem',
@@ -261,9 +308,10 @@ export default function Masterplan() {
         
       }}>
 
-        <div style={{ position: 'sticky', top: '6rem', height: '100%' }}>
+        <div className="mp-map" style={{ position: 'sticky', top: '6rem', height: '100%' }}>
           <div
             ref={svgWrapRef}
+            className="mp-svg"
             style={{
               border: 'none',
               background: '#0e0d0b',

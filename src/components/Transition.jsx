@@ -12,7 +12,8 @@ export default function Transition() {
       if (!link) return
 
       e.preventDefault()
-      const target = document.querySelector(link.getAttribute('href'))
+      const href = link.getAttribute('href')
+      const target = href === '#' ? document.documentElement : document.querySelector(href)
       if (!target) return
 
       gsap.fromTo(curtain,
