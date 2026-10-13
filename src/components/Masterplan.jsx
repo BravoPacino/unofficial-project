@@ -202,6 +202,38 @@ export default function Masterplan() {
   return resetAll
   })
 
+  // Phones: the plan sticks under the bar and the list slides up beneath it.
+  // A facility lights up, with its zone, once it passes a line just below the plan,
+  // so a swipe walks through them the way the pinned scroll does on desktop.
+  mm.add('(max-width: 760px)', () => {
+    const mapEl = sectionRef.current.querySelector('.mp-map')
+    const groups = svgEl.querySelectorAll('.interactive-group')
+
+    const update = () => {
+      const mapBottom = mapEl.getBoundingClientRect().bottom
+      const line = mapBottom + (window.innerHeight - mapBottom) * 0.3
+      const lit = new Set()
+      items.forEach(li => {
+        const r = li.getBoundingClientRect()
+        const on = r.top + r.height / 2 < line
+        li.classList.toggle('active', on)
+        if (on) lit.add(li.dataset.target)
+      })
+      groups.forEach(g => g.classList.toggle('active', lit.has(g.id)))
+    }
+
+    ScrollTrigger.create({
+      trigger: listRef.current,
+      start: 'top bottom',
+      end: 'bottom top',
+      onUpdate: update,
+      onRefresh: update,
+      onLeaveBack: resetAll,
+    })
+
+    return resetAll
+  })
+
   return () => mm.revert()
 }, [])
 
@@ -267,9 +299,8 @@ export default function Masterplan() {
             border-bottom: 1px solid rgba(200,168,107,0.15);
           }
           .mp-svg { height: 100% !important; }
-          .masterplan-list { height: auto !important; overflow: visible !important; padding: 1.5rem 0 0 !important; }
-          .masterplan-list ul { columns: 2; column-gap: 0.8rem; }
-          .masterplan-list .facility-item { break-inside: avoid; padding: 0.5rem 0.6rem; }
+          .masterplan-list { height: auto !important; overflow: visible !important; overflow-x: clip !important; padding: 1.5rem 0 0 !important; }
+          .masterplan-list .facility-item { padding: 0.8rem 0.6rem; font-size: 0.7rem; }
         }
 
 
@@ -293,7 +324,7 @@ export default function Masterplan() {
           letterSpacing: '0.06em'
         }}>
           <span className="mp-hint-hover">Hover any zone to discover the facilities within</span>
-          <span className="mp-hint-touch">Tap a facility to find it on the plan</span>
+          <span className="mp-hint-touch">Scroll to walk through the facilities, or tap one to find it on the plan</span>
         </p>
       </div>
 
