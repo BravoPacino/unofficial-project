@@ -7,11 +7,11 @@ import { lenisRef } from '../lib/lenis'
 gsap.registerPlugin(ScrollTrigger)
 
 const facilities = [
-  { label: 'Resort-Style Pool', img: `${import.meta.env.BASE_URL}images/pool.webp` },
-  { label: 'Pedestrian Bridges', img: `${import.meta.env.BASE_URL}images/walkway.webp` },
-  { label: 'Lounge Decks', img: `${import.meta.env.BASE_URL}images/lounge.webp` },
-  { label: 'Floating Gym', img: `${import.meta.env.BASE_URL}images/gym.webp` },
-  { label: 'Serene Courtyards', img: `${import.meta.env.BASE_URL}images/pool-aerial.webp` },
+  { label: 'Resort-Style Pool', img: `${import.meta.env.BASE_URL}drawings/pool-gold.webp`, ar: 2 },
+  { label: 'Pedestrian Bridges', img: `${import.meta.env.BASE_URL}drawings/walkway-gold.webp`, ar: 2 },
+  { label: 'Lounge Decks', img: `${import.meta.env.BASE_URL}drawings/lounge-gold.webp`, ar: 2 },
+  { label: 'Floating Gym', img: `${import.meta.env.BASE_URL}drawings/gym-gold.webp`, ar: 2 },
+  { label: 'Serene Courtyards', img: `${import.meta.env.BASE_URL}drawings/aerial-gold.webp`, ar: 0.5625 },
 ]
 
 const REST = 0.15
@@ -120,7 +120,7 @@ export default function Facilities() {
             fontSize: '0.58rem', letterSpacing: '0.28em',
             textTransform: 'uppercase', color: '#c8a86b',
             marginBottom: '0.8rem'
-          }}>/ Amenities /</p>
+          }}>05 — Amenities</p>
           <SplitText
             style={{
               fontFamily: 'Cormorant Garamond, serif',
@@ -140,16 +140,16 @@ export default function Facilities() {
 
         <div ref={trackRef} className="fac-track">
           {facilities.map((f, i) => (
-            <div key={i} className="fac-card" style={{ opacity: 0 }}
+            <div key={i} className="fac-card" style={{ opacity: 0, '--ar': f.ar }}
               onMouseEnter={e => {
                 gsap.to(e.currentTarget.querySelector('.fac-img'), {
-                  scale: 1.06, filter: 'brightness(0.8)',
+                  scale: 1.04, filter: 'brightness(1.1)',
                   duration: 0.7, ease: 'power2.out'
                 })
               }}
               onMouseLeave={e => {
                 gsap.to(e.currentTarget.querySelector('.fac-img'), {
-                  scale: 1, filter: 'brightness(0.5)',
+                  scale: 1, filter: 'brightness(0.9)',
                   duration: 0.7, ease: 'power2.out'
                 })
               }}
@@ -159,13 +159,13 @@ export default function Facilities() {
                 backgroundImage: `url(${f.img})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                filter: 'brightness(0.5)',
+                filter: 'brightness(0.9)',
                 transition: 'none'
               }} />
 
               <div style={{
                 position: 'absolute', inset: 0,
-                background: 'linear-gradient(to top, rgba(8,8,6,0.7) 0%, transparent 50%)'
+                background: 'linear-gradient(to top, rgba(8,8,6,0.75) 0%, transparent 32%)'
               }} />
 
               <div style={{
@@ -194,18 +194,18 @@ export default function Facilities() {
           position: sticky; top: 0;
           height: 100vh; height: 100svh;
           display: flex; flex-direction: column; justify-content: center;
-          overflow: hidden;
+          overflow: hidden; padding-top: 4.5rem;
         }
         .fac-header { padding: 0 4rem; margin: 0 0 2.2rem; }
         .fac-track {
           position: relative; display: flex; gap: 1.5rem; padding: 0 4rem;
-          width: max-content; cursor: grab; will-change: transform; user-select: none;
+          width: max-content; cursor: grab; will-change: transform; user-select: none; align-items: flex-start;
         }
-        .fac-card { position: relative; width: 38vw; height: min(58vh, 640px); flex-shrink: 0; overflow: hidden; }
+        .fac-card { position: relative; height: min(54vh, 600px); aspect-ratio: var(--ar); flex-shrink: 0; overflow: hidden; border: 1px solid rgba(200,168,107,0.14); }
         @media (max-width: 760px) {
           .fac-header { padding: 0 1.5rem; margin-bottom: 1.6rem; }
           .fac-track { gap: 1rem; padding: 0 1.5rem; }
-          .fac-card { width: 78vw; height: 52vh; }
+          .fac-card { height: 42vh; height: 42svh; }
         }
         @media (prefers-reduced-motion: reduce) {
           .fac-stage { position: static; height: auto; padding: 8rem 0 6rem; }

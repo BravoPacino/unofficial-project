@@ -3,10 +3,10 @@ import { gsap } from 'gsap'
 import { lenisRef } from '../lib/lenis'
 
 const navItems = [
-  { label: 'Residences', href: '#residences' },
-  { label: 'Masterplan', href: '#masterplan' },
-  { label: 'Facilities', href: '#facilities' },
   { label: 'Location', href: '#location' },
+  { label: 'Masterplan', href: '#masterplan' },
+  { label: 'Residences', href: '#residences' },
+  { label: 'Facilities', href: '#facilities' },
 ]
 
 export default function Navbar() {

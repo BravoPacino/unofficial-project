@@ -36,7 +36,7 @@ export default function Location() {
           fontSize: '0.58rem', letterSpacing: '0.28em',
           textTransform: 'uppercase', color: '#c8a86b',
           marginBottom: '1.4rem'
-        }}>/ Location /</p>
+        }}>02 — Location</p>
 
         <SplitText
             style={{

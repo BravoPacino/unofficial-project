@@ -311,7 +311,7 @@ export default function Masterplan() {
           fontSize: '0.58rem', letterSpacing: '0.28em',
           textTransform: 'uppercase', color: '#c8a86b',
           marginBottom: '0.8rem'
-        }}>/ Site Plan /</p>
+        }}>03 — Site Plan</p>
         <h2 style={{
           fontFamily: 'Cormorant Garamond, serif',
           fontSize: 'clamp(2.4rem,4vw,3.5rem)',

@@ -6,8 +6,7 @@ import Grain from './components/Grain'
 import Transition from './components/Transition'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
-import About from './components/About'
-import Pillars from './components/Pillars'
+import Idea from './components/Idea'
 import Residences from './components/Residences'
 import Facilities from './components/Facilities'
 import Location from './components/Location'
@@ -54,12 +53,11 @@ function App() {
             <Navbar />
             <main>
               <Hero />
-              <About />
-              <Pillars />
-              <Residences />
-              <Masterplan />
-              <Facilities />
+              <Idea />
               <Location />
+              <Masterplan />
+              <Residences />
+              <Facilities />
               <Enquire />
             </main>
             <Footer />
