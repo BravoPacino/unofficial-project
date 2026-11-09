@@ -201,7 +201,7 @@ export default function Facilities() {
           position: relative; display: flex; gap: 1.5rem; padding: 0 4rem;
           width: max-content; cursor: grab; will-change: transform; user-select: none; align-items: flex-start;
         }
-        .fac-card { position: relative; height: min(54vh, 600px); aspect-ratio: var(--ar); flex-shrink: 0; overflow: hidden; border: 1px solid rgba(200,168,107,0.14); }
+        .fac-card { position: relative; height: clamp(220px, calc(100svh - 21rem), 600px); aspect-ratio: var(--ar); flex-shrink: 0; overflow: hidden; border: 1px solid rgba(200,168,107,0.14); }
         @media (max-width: 760px) {
           .fac-header { padding: 0 1.5rem; margin-bottom: 1.6rem; }
           .fac-track { gap: 1rem; padding: 0 1.5rem; }
