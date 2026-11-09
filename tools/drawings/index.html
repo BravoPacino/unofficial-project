@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Drawings</title>
+<style>html,body{margin:0;background:#222}canvas{display:block;width:1600px;height:1000px}</style></head>
+<body>
+<canvas id="c"></canvas>
+<script type="module">
+  import { makeKit } from './kit.js'
+  const q = new URLSearchParams(location.search)
+  const name = q.get('scene') || 'homes', palette = q.get('palette') || 'gold'
+  const mod = await import(`./scenes/${name}.js`)
+  const k = makeKit(document.getElementById('c'), { palette, width: +(q.get('w') || 1600), height: +(q.get('h') || 1000) })
+  const view = mod.default(k)
+  k.render(view)
+  window.__ready = true
+</script>
+</body>
+</html>
