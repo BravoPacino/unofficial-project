@@ -53,7 +53,7 @@ export function makeRenderer(canvas) {
 
 /**
  * view: either a square-on façade view { cx, cy, width, eye, dist, camX } (see project.js),
- * or an oblique one { look: { eye: [x,y,z], at: [x,y,z], fov, aspect } } where fov is vertical at that aspect.
+ * or an oblique one { look: { eye: [x,y,z], at: [x,y,z], fov, aspect, shift? } } where fov is vertical at that aspect.
  * Either may carry shadow: { x, z, r } — the ground area, in metres, the sun's shadows must cover.
  */
 export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', renderer: shared = null }) {
@@ -166,8 +166,9 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
     let width = v.width
     if (v.look) {
       // keep the horizontal angle the view was framed with, whatever the box's shape
-      const tanH = Math.tan((v.look.fov * Math.PI) / 360) * (v.look.aspect || 2), tanV = tanH * (h / w)
-      camera.projectionMatrix.makePerspective(-tanH * NEAR, tanH * NEAR, tanV * NEAR, -tanV * NEAR, NEAR, FAR)
+      // shift: the frustum slid sideways / up (in tan units), as a square-on elevation is: verticals stay vertical
+      const tanH = Math.tan((v.look.fov * Math.PI) / 360) * (v.look.aspect || 2), tanV = tanH * (h / w), [sx, sy] = v.look.shift || [0, 0]
+      camera.projectionMatrix.makePerspective((sx - tanH) * NEAR, (sx + tanH) * NEAR, (sy + tanV) * NEAR, (sy - tanV) * NEAR, NEAR, FAR)
       const [ex, ey, ez] = v.look.eye, [ax, ay, az] = v.look.at
       width = 2 * tanH * Math.hypot(ax - ex, ay - ey, az - ez)              // metres across at the point looked at
     } else {
