@@ -40,8 +40,8 @@ export function treeGeometry(x, z, h, seed, { depth = 8, spread = 1 } = {}) {
  * focus(x, y, z): is this point part of the one thing the drawing is about? Anything whose centre is not is a ghost:
  * flat paper, faint lines, no shadow of its own, so the eye stays on the subject. No focus: everything is drawn in full.
  */
-export function adaptKit(ink, focus = null) {
-  if (typeof location !== 'undefined' && /nofocus/.test(location.search)) focus = null   // test pages: every line in full, for overlays
+export function adaptKit(ink, focus = null, { trees = focus } = {}) {
+  if (typeof location !== 'undefined' && /nofocus/.test(location.search)) focus = trees = null   // test pages: every line in full, for overlays
   let faint = false                                      // inside ghost(): everything drawn is a ghost, wherever it stands
   const inFocus = (x, y, z) => !faint && (!focus || focus(x, y, z))
   const ghost = (fn) => { const was = faint; faint = true; try { return fn() } finally { faint = was } }
@@ -65,7 +65,8 @@ export function adaptKit(ink, focus = null) {
     return put(g, a, { line: edges ? weight(soft) : false, angle: 1, flat, cast })
   }
   // trees: in full only when they stand inside the subject; outside it they are left out (a grey stipple tree reads as dirt)
-  const plant = (g, x, y, z) => (inFocus(x, y, z) ? ink.mesh(g, 0.04, { line: false, cast: true }) : null)
+  // trees: a separate test may be given (the flight draws everything in full but keeps only the trees of the subject)
+  const plant = (g, x, y, z) => (!faint && (!trees || trees(x, y, z)) ? ink.mesh(g, 0.04, { line: false, cast: true }) : null)
   const tree = (x, z, h = 7, ...[, seed = 1]) => plant(treeGeometry(x, z, h, seed), x, h * 0.6, z)
   const bush = (x, z, r = 1, seed = 1) => plant(treeGeometry(x, z, r * 1.5, seed + 0.5, { depth: 6, spread: 1.6 }), x, r * 0.5, z)
   const smoothLoop = (pts, n = 8) => {

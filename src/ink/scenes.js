@@ -6,6 +6,8 @@ import { adaptKit } from './adapter'
 const make = (load, { aspect = 2, shadow, disc = true, focus = null, focusOf = null, look = null } = {}) => ({
   load,
   disc,
+  focus,
+  focusOf,
   build: (mod) => (ink) => {
     const v = mod.default(adaptKit(ink, focusOf ? focusOf(mod) : focus))
     return { look: { eye: v.eye, at: v.at, fov: v.fov, aspect, ...look }, shadow }

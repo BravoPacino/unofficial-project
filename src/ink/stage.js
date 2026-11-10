@@ -158,11 +158,10 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
     }
   }
 
-  /** w × h in CSS px; v: the view to show in that box (defaults to the one the stage was made with) */
-  function resize(w, h, v = view) {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    renderer.setPixelRatio(dpr); renderer.setSize(w, h, false)
-    target.setSize(Math.round(w * dpr), Math.round(h * dpr))
+  let size = { w: 4, h: 4, dpr: 1 }
+  // camera and line scale for view v in a w × h box (CSS px); nothing is rebuilt, so it is cheap enough to call every frame
+  function frame(v, w = size.w, h = size.h) {
+    const { dpr } = size
     shown = v; aim(v)
     let width = v.width
     if (v.look) {
@@ -178,20 +177,48 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
     }
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert()
     fitShadow(shadowOf(v).r)
-    quadMat.uniforms.uRes.value.set(w * dpr, h * dpr); quadMat.uniforms.uDpr.value = dpr; quadMat.uniforms.uCell.value = Math.max(1.8, Math.min(2.6, w / 300))   // dots in CSS px: finer on a small drawing
     const k = Math.max(0.58, Math.min(1.15, w / width / 44))            // lines thin out when the drawing is small
     for (const [m, lw] of lineMats) { m.resolution.set(w * dpr, h * dpr); m.linewidth = lw * k * dpr }
   }
 
-  /** dir: unit vector pointing from the scene towards the sun */
-  function render(dir) {
-    const s = shadowOf(shown), wd = toWorld(shown, dir)
+  /** w × h in CSS px; v: the view to show in that box (defaults to the one the stage was made with); dpr: pixel ratio (default: the screen's, at most 2) */
+  function resize(w, h, v = view, dpr = Math.min(window.devicePixelRatio || 1, 2)) {
+    size = { w, h, dpr }
+    renderer.setPixelRatio(dpr); renderer.setSize(w, h, false)
+    target.setSize(Math.round(w * dpr), Math.round(h * dpr))
+    quadMat.uniforms.uRes.value.set(w * dpr, h * dpr); quadMat.uniforms.uDpr.value = dpr; quadMat.uniforms.uCell.value = Math.max(1.8, Math.min(2.6, w / 300))   // dots in CSS px: finer on a small drawing
+    frame(v, w, h)
+  }
+
+  /** where world point (x, y, z) lands in the box, in CSS px from its top left, and whether it is in front of the camera */
+  const v3 = new THREE.Vector3()
+  function project(x, y, z) {
+    v3.set(x, y, z).applyMatrix4(camera.matrixWorldInverse)
+    const front = v3.z < 0
+    v3.applyMatrix4(camera.projectionMatrix)
+    return { x: (v3.x + 1) / 2 * size.w, y: (1 - v3.y) / 2 * size.h, front }
+  }
+
+  /** the sun's direction in world space for light dir (camera space, from light.js) as seen from view v */
+  const worldLight = (dir, v = shown) => toWorld(v, dir)
+
+  /**
+   * dir: unit vector pointing from the scene towards the sun, in the camera's terms (light.js).
+   * world: the same, already in world space (worldLight), so the light stays put while the camera moves.
+   * out: a render target to draw the finished drawing into instead of the screen.
+   */
+  let sunKey = ''
+  function render(dir, { world = null, out = null } = {}) {
+    const s = shadowOf(shown), wd = world || toWorld(shown, dir)
     sun.position.set(s.x + wd[0] * 120, 4 + wd[1] * 120, s.z + wd[2] * 120)
     sun.target.position.set(s.x, 4, s.z)
+    // with the renderer's shadow map on manual, the shadows are worked out again only when the light moves
+    const key = [sun.position.x, sun.position.y, sun.position.z, s.r].map((n) => n.toFixed(3)).join()
+    if (key !== sunKey) { sunKey = key; renderer.shadowMap.needsUpdate = true }
     sun.intensity = (Math.PI * (1 - AMBIENT)) / Math.max(dir[2], 0.25)       // a face square to the drawing, in the sun, prints at its own grey
     camera.layers.set(L_SOLID); camera.layers.enable(L_TONE)
     renderer.setRenderTarget(target); renderer.clear(); renderer.render(scene, camera)
-    renderer.setRenderTarget(null); renderer.clear()
+    renderer.setRenderTarget(out); renderer.clear()
     renderer.render(quadScene, quadCam)
     renderer.clearDepth()
     camera.layers.set(L_SOLID); scene.overrideMaterial = depthOnly; renderer.render(scene, camera); scene.overrideMaterial = null
@@ -206,5 +233,5 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
     target.dispose()
     if (!shared) { renderer.dispose(); renderer.forceContextLoss() }
   }
-  return { kit, finish, resize, render, dispose }
+  return { kit, finish, resize, frame, render, project, worldLight, dispose }
 }
