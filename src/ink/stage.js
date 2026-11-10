@@ -83,7 +83,8 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
   scene.add(new THREE.AmbientLight(0xffffff, AMBIENT * Math.PI))
   const sun = new THREE.DirectionalLight(0xffffff, Math.PI)
   sun.castShadow = true
-  sun.shadow.mapSize.set(4096, 4096)
+  // 2048: a 4096 map is 64 MB of GPU memory per drawing, and phones run out (the page reloads)
+  sun.shadow.mapSize.set(2048, 2048)
   const fitShadow = (r) => { Object.assign(sun.shadow.camera, { left: -r, right: r, top: r, bottom: -r, near: 1, far: 260 }); sun.shadow.camera.updateProjectionMatrix() }
   fitShadow(22)
   sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.012
@@ -138,7 +139,8 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
   }
 
   // tone target + the full-screen stipple pass
-  const target = new THREE.WebGLRenderTarget(4, 4, { samples: 4, depthBuffer: true })
+  // no multisampling: the tone is turned into dots anyway, and a 4× MSAA buffer at phone resolution is tens of MB
+  const target = new THREE.WebGLRenderTarget(4, 4, { samples: 0, depthBuffer: true })
   const quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
   const quadMat = new THREE.ShaderMaterial({
     uniforms: { tTone: { value: target.texture }, uRes: { value: new THREE.Vector2() }, uDpr: { value: 1 }, uCell: { value: 2.6 }, uInk: { value: new THREE.Color(ink) }, uPaper: { value: new THREE.Color(paper) } },
@@ -196,6 +198,13 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
     camera.layers.set(L_LINE); renderer.render(scene, camera)
   }
 
-  const dispose = () => { target.dispose(); if (!shared) { renderer.dispose(); renderer.forceContextLoss() } }
+  // free everything this drawing put on the GPU: buffers, materials, the shadow map, the tone target
+  const dispose = () => {
+    scene.traverse((o) => { o.geometry?.dispose(); for (const m of [].concat(o.material || [])) m.dispose() })
+    for (const m of [...mats.values(), ...flats.values(), depthOnly, quadMat]) m.dispose()
+    sun.shadow.map?.dispose(); sun.shadow.map = null
+    target.dispose()
+    if (!shared) { renderer.dispose(); renderer.forceContextLoss() }
+  }
   return { kit, finish, resize, render, dispose }
 }

@@ -12,10 +12,8 @@ export default function LiveInk({ still, alt, ...props }) {
 
   useEffect(() => {
     const el = ref.current
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) setNear(true)
-      else if (Math.abs(e.boundingClientRect.top) > window.innerHeight * 3) setNear(false)
-    }, { rootMargin: '300px 0px' })
+    // build when it comes within a screen, free it as soon as it is a screen away (a fast scroll past must free it too)
+    const io = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: '100% 0px' })
     io.observe(el)
     return () => io.disconnect()
   }, [])

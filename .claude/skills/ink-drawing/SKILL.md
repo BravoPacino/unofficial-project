@@ -72,6 +72,10 @@ In the site they are `<InkPlate scene=… still=… />` (`src/ink/InkPlate.jsx`)
 4. The six oblique scenes (pool, gym, lounge, walkway, aerial, entrance) need a general camera in `stage.js` and `project.js`, not only the square-on one. Side and top faces then carry the tone; trees need leaves.
 5. Put it in the site with `<LiveInk still={webp} … />` (`src/ink/LiveInk.jsx`): WebGL starts near the screen, is freed far away, and falls back to the still drawing.
 
+## GPU memory (phones reload the page when it runs out)
+
+The user's page crashed on scroll when every plate kept its scene, a 4096 shadow map and a 4× MSAA target alive: 1.25 GB by the bottom of the page. Rules now: shadow maps 2048, no MSAA on the tone target, `stage.dispose()` frees geometry, materials, the shadow map and the target; plates draw one at a time through the shared renderer and free the scene straight after copying it; `LiveInk` frees its stage as soon as it is a screen away. Check with `node tools/ink/gpu-budget.cjs 390 844` (live MB at each scroll step and the peak; keep the peak well under 200 MB).
+
 ## Checking
 
 Start the dev server first: `npx vite --port 4390`. The test page is `/unofficial-project/sample.html`.
