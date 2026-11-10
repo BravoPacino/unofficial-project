@@ -41,8 +41,12 @@ function whiteHouse(k, x, z, ry, flip = false) {
   box(f * 2.2, 0.4, 2.6, 3.8, 0.8, 0.9, { soft: true })                     // 门前花槽
 }
 
+// the bridge, placed against the render: moved SH metres along the road from where the line drawing first had it
+const SH = 0, SHIFT = [-0.24 * SH, -0.97 * SH]
+export const BRIDGE = { A: [-6.4 + SHIFT[0], 3.2 + SHIFT[1]], B: [10 + SHIFT[0], 14.6 + SHIFT[1]], W: 4.6, shift: SHIFT }
+
 export default function walkway(k) {
-  const { tree, bush, smoothLine, line, slabShape, seg, box } = k
+  const { tree, bush, smoothLine, line, slabShape, seg, box, mesh } = k
   const eye = [-9, 12, 19], DEPTH = 3.2
   k.groundPlane(-DEPTH)
 
@@ -90,7 +94,7 @@ export default function walkway(k) {
     if (cur.length) runs.push(cur)
     for (const r of runs) if (r.length > 2) slabShape([...r.map((i) => a[i]), ...r.map((i) => b[i]).reverse()], 0, 0.7, true)
   }
-  const offBridge = ([, z]) => z < 0 || z > 19
+  const offBridge = ([, z]) => z < BRIDGE.A[1] - 3.2 || z > BRIDGE.B[1] + 4.4
   strip(C, -4.4, -5.6, offBridge); strip(C, 4.4, 5.8, offBridge)
   line(offset(C, 7.2), 0.01, true); line(offset(C, 10), 0.01, true)
   const pj = [], P1 = offset(C, 7.2), P2 = offset(C, 10)
@@ -98,29 +102,34 @@ export default function walkway(k) {
   seg(pj, true)
 
   // ── 人行桥：斜着跨过车道，桥面 + 两边密竖条栏杆 + 桥面铺地缝
-  const A = [-6.4, 3.2], B = [10, 14.6], dx = B[0] - A[0], dz = B[1] - A[1], L = Math.hypot(dx, dz), W = 4.6
+  const { A, B, W } = BRIDGE, dx = B[0] - A[0], dz = B[1] - A[1], L = Math.hypot(dx, dz)
   const ux = dx / L, uz = dz / L, vx = -uz, vz = ux
-  box((A[0] + B[0]) / 2, -0.25, (A[1] + B[1]) / 2, L, 0.8, W, { ry: Math.atan2(-dz, dx) })   // 桥面比地面高 0.15
-  // 桥两边各一道深的边梁（跨过车道那段看得到，深色），两头各一块铺地的落脚平台
-  const RY = Math.atan2(-dz, dx)
-  for (const sgn of [-1, 1]) box((A[0] + B[0]) / 2 + vx * sgn * (W / 2 - 0.12), -0.6, (A[1] + B[1]) / 2 + vz * sgn * (W / 2 - 0.12), L, 1.3, 0.24, { ry: RY, a: 0.3 })
-  for (const [P, s] of [[A, -1], [B, 1]]) {
-    const cx = P[0] + ux * s * 1.8, cz = P[1] + uz * s * 1.8
-    box(cx, 0.03, cz, 3.6, 0.06, W + 1.6, { ry: RY, soft: true, a: 0.93 })
-    for (const sgn of [-1, 1]) box(cx + vx * sgn * (W / 2 + 0.6), 0.35, cz + vz * sgn * (W / 2 + 0.6), 3.6, 0.7, 0.4, { ry: RY })   // 落脚处两边矮墙
-  }
+  // 照效果图：桥面是一块厚的白板（跨过车道那段看得到约 1 m 厚的白色板边），近的一边板边上一排密白竖条，
+  // 远的一边是一道矮的白实墙、墙上再一排竖条，在桥落到房子前人行道的那头收成圆头；桥面铺地是斜向的长条
+  const RY = Math.atan2(-dz, dx), cx = (A[0] + B[0]) / 2, cz = (A[1] + B[1]) / 2
+  box(cx, -0.85, cz, L, 1.0, W, { ry: RY })                                            // 桥板：面在 0.15
+  const far = (t, y) => [A[0] + ux * t - vx * (W / 2 - 0.12), y, A[1] + uz * t - vz * (W / 2 - 0.12)]
+  box(cx - vx * (W / 2 - 0.12), 0.45, cz - vz * (W / 2 - 0.12), L, 0.6, 0.24, { ry: RY })                // 远边的矮实墙
+  const [ex, , ez] = far(L, 0)
+  mesh(new k.THREE.CylinderGeometry(0.12, 0.12, 0.6, 16).translate(ex, 0.45, ez), { angle: 40 })        // 墙在落脚那头的圆头
   const rails = [], soft = []
-  for (const sgn of [-1, 1]) {
-    const ox = vx * sgn * (W / 2 - 0.1), oz = vz * sgn * (W / 2 - 0.1)
+  for (const [sgn, y0] of [[1, 0.15], [-1, 0.75]]) {
+    const ox = vx * sgn * (W / 2 - 0.12), oz = vz * sgn * (W / 2 - 0.12)
     const P = (t, y) => [A[0] + ux * t + ox, y, A[1] + uz * t + oz]
-    rails.push([P(0, 1.25), P(L, 1.25)], [P(0, 0.2), P(L, 0.2)])
-    for (let t = 0.1; t < L; t += 0.13) soft.push([P(t, 0.2), P(t, 1.25)])
+    rails.push([P(0, 1.25), P(L, 1.25)])
+    for (let t = 0.1; t < L; t += 0.13) soft.push([P(t, y0), P(t, 1.25)])
   }
-  for (let t = 0; t < L; t += 0.9) { const a0 = [A[0] + ux * t - vx * W / 2, 0.155, A[1] + uz * t - vz * W / 2], a1 = [A[0] + ux * t + vx * W / 2, 0.155, A[1] + uz * t + vz * W / 2]; soft.push([a0, a1]) }
+  // 斜向的长条铺地
+  for (let t = -W; t < L; t += 0.7) {
+    const t0 = Math.max(0, t), t1 = Math.min(L, t + W * 0.9)
+    if (t1 <= t0) continue
+    const s0 = ((t0 - t) / (W * 0.9)) * W - W / 2, s1 = ((t1 - t) / (W * 0.9)) * W - W / 2
+    soft.push([[A[0] + ux * t0 + vx * s0, 0.155, A[1] + uz * t0 + vz * s0], [A[0] + ux * t1 + vx * s1, 0.155, A[1] + uz * t1 + vz * s1]])
+  }
   seg(rails); seg(soft, true)
 
   // ── 车：桥下一辆、远处一辆、车库里一辆
-  k.car(3.0, 17.5, 0.2, -DEPTH)
+  k.car(3.0 + BRIDGE.shift[0], 17.5 + BRIDGE.shift[1], 0.2, -DEPTH)
   k.car(-2.2, -6, 0.3, -DEPTH)
   // 树
   for (const [x, z, h, r, s] of [[-9, -4, 8.5, 2.8, 1], [-12, -26, 8, 2.4, 2], [12.5, 24, 8, 2.6, 3], [3, -24, 7, 2.2, 4]]) tree(x, z, h, r, s)
