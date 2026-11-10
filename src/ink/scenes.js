@@ -30,8 +30,8 @@ export const SCENES = {
     look: { eye: [-15, 11, 32], at: [1.8, -1, 8.9], fov: 34 } }),
   // the timber deck and its two nests
   lounge: make(() => import('../../tools/drawings/scenes/lounge.js'), { shadow: { x: 0, z: 2, r: 16 }, focus: inBox(-7.5, 6, -1, 3.2, -1.6, 5) }),
-  // the running machines and the bike
-  gym: make(() => import('../../tools/drawings/scenes/gym.js'), { shadow: { x: 0, z: 4, r: 14 }, focus: inBox(-3, 3.3, 0, 2.2, 1.8, 5.2) }),
+  // the four treadmills
+  gym: make(() => import('../../tools/drawings/scenes/gym.js'), { shadow: { x: 0, z: 4, r: 14 }, focus: inBox(-3.2, 3.2, 0, 2.2, 1.8, 5.2) }),
   // the long pool and the boat in it
   aerial: make(() => import('../../tools/drawings/scenes/aerial.js'), { aspect: 900 / 1600, shadow: { x: 0, z: -28, r: 52 }, disc: false, focus: inBox(-11, 14, -1, 5, -66, 23) }),
   // the entrance portal and the guardhouse under it

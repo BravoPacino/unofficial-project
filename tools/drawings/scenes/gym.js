@@ -87,8 +87,9 @@ export default function gym(k) {
   k.groundPlane()
   // 亭子正面朝 -z（在 z = 0），人在里面
   pavilion(k, { ox: 0, oz: 0, ry: Math.PI, W: 7.2, D: 10, H: 5, eye })
-  for (const x of [-1.85, -0.6, 0.65]) treadmill(k, x, 3.3)
-  bike(k, 2.25, 3.7, 0.35)
+  // four treadmills, centred in the 7.2 m room: each about 0.92 m wide with its handrails, 0.55 m apart
+  // (1.47 m centre to centre), so about 0.93 m clear to each side wall and over 5 m clear behind
+  for (const x of [-2.205, -0.735, 0.735, 2.205]) treadmill(k, x, 3.3)
   // 外面：两排别墅面对面
   villaRow(k, { n: 8, ox: 12, oz: -58, ry: -Math.PI / 2, ground: false, yard: true })
   villaRow(k, { n: 8, ox: -12, oz: 10, ry: Math.PI / 2, ground: false, yard: true })
