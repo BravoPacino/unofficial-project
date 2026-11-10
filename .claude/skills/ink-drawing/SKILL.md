@@ -8,6 +8,12 @@ description: Draw a building as an inked plate in the manner of Heron (heronaiap
 The method behind `src/ink/` in this repo. Courtyard Homes is the worked example (`src/ink/homes.js`).
 The full history and the reasoning are in `docs/ink-plan.md`; this file is what you need to do the next one.
 
+## Sources
+
+- The developer's website renders: `git show origin/main:public/images/<name>.webp`, kept outside the repo.
+- The developer's brochure (user-supplied link): https://www.jesseltoncourtyard.com/images/Jesselton%20Courtyard.pdf — download it into its own scratch folder, never into the repo, never onto the site. It has the plan widths: Courtyard Homes upper floors 9.15 m, plot 12.8 m (A1/A2, pp. 13–14); Courtyard Villas 8.4 m per home (pp. 17–20). It has no floor heights. Homes stand on a slope: car porch at street level, garden one floor up (pp. 12–13). Pages 3, 9 and 10 show scenes not drawn yet: the aerial, a tree-house play area, the garden walk.
+- Widths come from the brochure; heights and details from the render at the same scale. The site must say so. Never use the development's name or the developer's logo on the site.
+
 ## What the user wants, and does not
 
 - **Only Heron's drawing method.** Not its page layout: no ruled grid, rulers, corner crosses, title strips, `[01]` notes.

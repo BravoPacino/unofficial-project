@@ -52,8 +52,9 @@ export default function Idea() {
           {`239 homes on 12 acres,\nlaid out around courtyards.`}
         </SplitText>
         <p className="idea-fade idea-body">
-          An enclave in George Town with two home types — Courtyard Homes and Courtyard Villas —
-          set among gardens, pools and pedestrian bridges.
+          A low-density, gated and guarded enclave in George Town with two home types — Courtyard Homes and
+          Courtyard Villas — set among gardens, pools and pedestrian bridges. Dual-key layouts let several
+          generations live under one roof.
         </p>
       </div>
 

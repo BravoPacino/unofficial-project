@@ -136,7 +136,7 @@ export default function Facilities() {
             fontSize: '0.65rem', letterSpacing: '0.12em',
             color: 'rgba(240,232,213,0.3)',
             marginTop: '1rem'
-          }}>— drag or scroll to explore · shadows follow the sun over George Town now</p>
+          }}>— drag or scroll to explore · shadows follow the sun over George Town now · drawn from the developer’s renders, sizes estimated</p>
         </div>
 
         <div ref={trackRef} className="fac-track">

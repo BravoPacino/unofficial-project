@@ -13,7 +13,8 @@ const units = [
     size: '6,649 – 9,053 sqft',
     price: 'From RM 8.1M',
     img: `${import.meta.env.BASE_URL}drawings/homes-ink.webp`,
-    live: true
+    live: true,
+    facts: 'Upper floors 9.15 m wide on a plot 12.8 m wide (3,175 – 3,466 sqft of land). Built into a slope: the car porch is at street level, the garden a floor up. A lift in every home.'
   },
   {
     type: '1.5 & 2-Storey Condominium',
@@ -23,7 +24,8 @@ const units = [
     size: '2,734 – 5,176 sqft',
     price: 'From RM 3.3M',
     img: `${import.meta.env.BASE_URL}drawings/villas-ink.webp`,
-    plate: 'villas'
+    plate: 'villas',
+    facts: 'Each home 8.4 m wide. Two kinds: 2-storey with 6 bedrooms, and 1.5-storey with 4 bedrooms, each with its own courtyard.'
   }
 ]
 
@@ -116,7 +118,8 @@ export default function Residences() {
             </div>
             <p className="res-note">
               {u.live ? 'Shadows follow the sun over George Town now · drag across to move the day. ' : 'Shadows follow the sun over George Town now. '}
-              Which way the {u.live ? 'house faces' : 'row faces'} is not known, so the light is kept in front; above 52° the sun is drawn at 52°. Not to scale.
+              Which way the {u.live ? 'house faces' : 'row faces'} is not known, so the light is kept in front; above 52° the sun is drawn at 52°.
+              Plan widths from the developer’s brochure; heights estimated from the render.
             </p>
 
             <div style={{
@@ -144,6 +147,7 @@ export default function Residences() {
                 <span>·</span>
                 <span>{u.parking} Parking</span>
               </div>
+              {u.facts && <p style={{ fontSize: '0.74rem', lineHeight: 1.8, color: 'rgba(42,38,34,0.62)', margin: '0 0 1.2rem', maxWidth: 460 }}>{u.facts}</p>}
               <div style={{
                 paddingTop: '1rem',
                 borderTop: '1px solid rgba(42,38,34,0.1)',

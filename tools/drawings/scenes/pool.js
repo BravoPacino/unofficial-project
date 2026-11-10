@@ -14,8 +14,8 @@ export default function pool(k) {
   const eye = [2.6, 1.7, 25]
   k.groundPlane()
   // 两排别墅：右边朝 -x、左边朝 +x，前院矮墙 + 花槽
-  villaRow(k, { n: 8, ox: 16, oz: -64, ry: -Math.PI / 2, ground: false, yard: true })
-  villaRow(k, { n: 8, ox: -16, oz: 14, ry: Math.PI / 2, ground: false, yard: true })
+  villaRow(k, { n: 9, ox: 16, oz: -64, ry: -Math.PI / 2, ground: false, yard: true })
+  villaRow(k, { n: 9, ox: -16, oz: 14, ry: Math.PI / 2, ground: false, yard: true })
   // 尽头的健身亭（正面朝这边），里面看得到几台跑步机
   pavilion(k, { ox: -1, oz: -23.5, W: 15, D: 9, H: 7, eye })
   for (const x of [-5, -3.4, -1.8]) treadmill(k, x, -26)

@@ -7,7 +7,7 @@ import { dayOf, lightAt, clockOf } from './light'
 const INK = '#211e1a', PAPER = '#efe8da', ACC = '#bd7f1f', DISC = '#dba84a'
 const MIN = 60000
 // trees stand in the gaps between the houses, a little in front of the deck
-const TREES = [{ x: -7.2, z: GROUND_Z + 0.6, h: 8.6, seed: 7 }, { x: 8.4, z: GROUND_Z + 0.6, h: 8.2, seed: 21 }]
+const TREES = [{ x: -6.1, z: GROUND_Z + 0.8, h: 8.2, seed: 7 }, { x: 7.0, z: GROUND_Z + 0.8, h: 7.8, seed: 21 }]
 // a smaller or squarer box shows less street, so the house is drawn larger
 const NARROW = 560
 const viewFor = (w, h) => (h / w > 0.6 ? NARROW_VIEW : w < 900 ? CARD_VIEW : VIEW)

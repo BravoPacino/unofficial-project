@@ -1,13 +1,15 @@
 // Courtyard Villas：照效果图画。沿着泳池一长排，一个单元一个单元重复：
 // 一整片白边框的竖木格栅（三楼到屋顶）、旁边一个往外挑的白色方框（里面木内衬 + 窗）、再上面一层凹阳台（黑栏杆）；
-// 底层玻璃，每户门口一个白色门框，木百叶小窗；前面一个自由曲线的泳池和小岛。米数是按图估的。
+// 底层玻璃，每户门口一个白色门框，木百叶小窗；前面一个自由曲线的泳池和小岛。
+// 立面细节按效果图量（一个单元当 9.6 个「图上单位」）；开发商手册给的每户宽是 8.4 m，所以沿排的方向乘 KX 缩到真实宽度。高度按图估。
 /** 一排 Courtyard Villas：从 x = ox 开始 n 个单元，正面朝 +z（在 z = oz），ry 转向。别的图（泳池、鸟瞰、健身房窗外）也用 */
-export function villaRow(k, { n = 7, ox = 0, oz = 0, ry = 0, ground = true, yard = false } = {}) {
+export function villaRow(k, { n = 8, ox = 0, oz = 0, ry = 0, ground = true, yard = false } = {}) {
   const { box: box0, seg: seg0 } = k
   // 局部坐标 → 世界：先绕 y 转 ry，再平移到 (ox, oz)
   const cs = Math.cos(ry), sn = Math.sin(ry)
-  const T = (x, y, z) => [ox + x * cs + z * sn, y, oz - x * sn + z * cs]
-  const box = (x, y, z, w, h, d, o = {}) => { const [X, , Z] = T(x, y, z); box0(X, y, Z, w, h, d, { ...o, ry: ry + (o.ry || 0) }) }
+  const KX = 8.4 / 9.6                                 // 手册：每户 8.4 m 宽
+  const T = (x, y, z) => [ox + x * KX * cs + z * sn, y, oz - x * KX * sn + z * cs]
+  const box = (x, y, z, w, h, d, o = {}) => { const [X, , Z] = T(x, y, z); box0(X, y, Z, w * KX, h, d, { ...o, ry: ry + (o.ry || 0) }) }
   const seg = (pairs, soft) => seg0(pairs.map(([p, q]) => [T(...p), T(...q)]), soft)
   const N = n, PITCH = 9.6, X1 = N * PITCH, G = 3.4, B = 3.75, TOP = 13.6
   const rect = (x0, y0, x1, y1, z, soft = true) => seg([[[x0, y0, z], [x1, y0, z]], [[x1, y0, z], [x1, y1, z]], [[x1, y1, z], [x0, y1, z]], [[x0, y1, z], [x0, y0, z]]], soft)
@@ -57,12 +59,12 @@ export function villaRow(k, { n = 7, ox = 0, oz = 0, ry = 0, ground = true, yard
       box(x + 6.0, 0.25, 2.3, 6.4, 0.5, 1.1, { soft: true })
     }
   }
-  return { x1: X1 }
+  return { x1: X1 * KX }
 }
 
 export default function villas(k) {
   const { tree, smoothLoop, loop, slabShape } = k
-  villaRow(k)
+  villaRow(k, { n: 8 })
   // ── 前面的泳池：自由曲线，池边一圈 + 里面一圈；中间一个种满植物的岛；走道边线
   const pool = smoothLoop([[-6, 4], [10, 3.6], [24, 5], [38, 4.4], [52, 6], [62, 9], [58, 15], [40, 13], [26, 17], [12, 15], [0, 18], [-10, 13]])
   loop(pool, 0.02); loop(pool.map(([x, z]) => [x + (x - 26) * -0.012, z + (z - 10) * -0.06]), 0.02, true)

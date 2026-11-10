@@ -16,8 +16,6 @@ export default function entrance(k) {
   const { box, seg, tree, bush, line } = k
   const eye = [-13.5, 1.6, 16]
   k.groundPlane()
-  const rectZ = (x0, y0, x1, y1, z, soft = false) => seg([[[x0, y0, z], [x1, y0, z]], [[x1, y0, z], [x1, y1, z]], [[x1, y1, z], [x0, y1, z]], [[x0, y1, z], [x0, y0, z]]], soft)
-  const rectX = (z0, y0, z1, y1, x, soft = false) => seg([[[x, y0, z0], [x, y0, z1]], [[x, y0, z1], [x, y1, z1]], [[x, y1, z1], [x, y1, z0]], [[x, y1, z0], [x, y0, z0]]], soft)
 
   // ── 大门框：左墙、右墙、厚屋顶板（门框进深 14 m）
   const X0 = -8, X1 = 8, D = 14, H = 8.6, T = 1.1

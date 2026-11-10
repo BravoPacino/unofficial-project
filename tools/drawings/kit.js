@@ -209,7 +209,7 @@ export function makeKit(canvas, { palette = 'gold', width = 1600, height = 1000,
     seg(out, soft)
   }
   /** 侧面轮廓 [[z,y],...] 沿 x 挤出厚度 t（中心在 x）：跑步机扶手、单车车架这种斜的、弯的东西 */
-  function prismX(pts, x, t, { soft = false, angle = 25 } = {}) {
+  function prismX(pts, x, t) {
     const sh = new THREE.Shape(pts.map(([z, y]) => new THREE.Vector2(z, y)))
     const g = new THREE.ExtrudeGeometry(sh, { depth: t, bevelEnabled: false, curveSegments: 6 })
     g.rotateY(-Math.PI / 2); g.translate(x + t / 2, 0, 0)

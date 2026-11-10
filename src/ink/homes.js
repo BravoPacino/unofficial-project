@@ -1,15 +1,20 @@
 // Courtyard Homes for the ink stage: the middle house of the row in one-point perspective, a half of each neighbour.
-// Proportions are read off the developer's published render with the white frame as the ruler (7.70 m wide);
-// see docs/ink-plan.md, appendix A. Absolute sizes are not known. x runs along the street, y up, z towards the viewer;
-// the front face of the white frame is the plane z = 0.
+// Proportions are read off the developer's published render (docs/ink-plan.md, appendix A), in "render units" with the
+// white frame as 7.70. The developer's brochure gives the plan widths: the upper floors are 9.15 m across (frame to
+// dark tower) and a plot is 12.8 m wide, so everything is scaled by S to real metres. Heights are not in the brochure;
+// they follow the render at the same scale. This is the garden side: the house stands on a slope, with the car porch a
+// floor lower on the street side, so the glazed floor here is the brochure's Level 1.
+// x runs along the street, y up, z towards the viewer; the front face of the white frame is the plane z = 0.
 const WHITE = 0.97, DARK = 0.18, RECESS = 0.45, TIMBER = 0.76, METAL = 0.05, DECK = 0.9, SOFT = 0.62
 
-// eye 1.7 m, 26 m back, camera on the middle of the house
-export const VIEW = { cx: -0.2, cy: 6.4, width: 32, eye: 1.7, dist: 26, camX: -0.4 }
-export const CARD_VIEW = { ...VIEW, cx: -0.4, cy: 6.85, width: 29 }        // a 2:1 box under about 900 px: less street
-export const NARROW_VIEW = { ...VIEW, cx: -0.4, cy: 7.8, width: 21 }       // a squarer box, on a phone
-export const PITCH = 15.5                      // one house to the next, along the row (estimated)
-export const GROUND_Z = 2.8                    // front edge of the timber deck: where the ground line is drawn
+const S = 9.15 / (4.48 - -5.4)                   // render units → metres: frame-to-tower width is 9.15 m in the brochure
+const sv = (v) => ({ ...v, cx: v.cx * S, cy: v.cy * S, width: v.width * S, dist: v.dist * S, camX: v.camX * S })
+// eye 1.7 m, about 24 m back, camera on the middle of the house
+export const VIEW = sv({ cx: -0.2, cy: 6.4, width: 32, eye: 1.7, dist: 26, camX: -0.4 })
+export const CARD_VIEW = sv({ cx: -0.4, cy: 6.85, width: 29, eye: 1.7, dist: 26, camX: -0.4 })   // a 2:1 box under about 900 px: less street
+export const NARROW_VIEW = sv({ cx: -0.4, cy: 7.8, width: 21, eye: 1.7, dist: 26, camX: -0.4 })  // a squarer box, on a phone
+export const PITCH = 12.8                      // one house to the next along the row: the plot width in the brochure (2.15 + 10.65 m)
+export const GROUND_Z = 2.8 * S                // front edge of the timber deck: where the ground line is drawn
 
 // frame and bays
 const FX0 = -5.4, FX1 = 2.3, Y0 = 4.92, Y1 = 12.27, TB = 0.37, DZ = 1.2
@@ -20,30 +25,31 @@ const RW1 = 3.03, FIN1 = 3.39, FIN_TOP = 13.62, TW1 = 4.48, TW_TOP = 12.11
 const GX0 = -5.0, GL = [[-4.81, -1.24], [0.39, 3.96]], GY0 = 0.15, GY1 = 4.45, TRANSOM = 2.48, GZ = -0.25, ROOM = 5
 const S0 = 4.55, CX0 = -5.4, CX1 = 6.6, CZ = 0.62
 
-/** Rectangles tools/ink/overlay.cjs lays over the render: [x0, y0, x1, y1, z, group]. The bays are their openings in the frame face. */
+/** Rectangles tools/ink/overlay.cjs lays over the render: [x0, y0, x1, y1, z, group], in metres. The bays are their openings in the frame face. */
 export const OUTLINE = [
   [FX0, Y0, FX1, Y1, 0, 'frame'], [BX0, Y0, BX1, M0, 0, 'frame'], [BX0, M1, BX1, Y1 - TB, 0, 'frame'], [SX0, Y0, SX1, Y1 - TB, 0, 'frame'],
   [FIN1, Y0, TW1, TW_TOP, -0.3, 'frame'], [RW1, Y0, FIN1, FIN_TOP, -0.2, 'frame'],
   [CX0, S0, CX1, Y0, CZ + 0.08, 'slab'], [CX0, 3.23, CX1, S0, CZ, 'slab'],
   [GX0, 0, TW1, S0, 0, 'ground'], [GL[0][0], GY0, GL[0][1], GY1, GZ, 'ground'], [GL[1][0], GY0, GL[1][1], GY1, GZ, 'ground'],
-]
+].map(([a, b, c, d, z, g]) => [a * S, b * S, c * S, d * S, z * S, g])
 
 /** Things worth pointing at (x, y, z). Text states only what the render shows. */
 export const SPOTS = [
   { x: BX0 + 2.5, y: M1 + 2.1, z: -DZ, title: 'Recessed balconies', body: 'Two balconies, one above the other, set about a metre back inside a white frame, with sliding timber shutters either side of the glass.' },
   { x: (SX0 + SX1) / 2, y: Y0 + 2.2, z: -0.55, title: 'Timber screen', body: 'A full-height panel of upright timber fins beside the balconies, with glass behind it.' },
   { x: CX1 - 1.4, y: 3.9, z: CZ, title: 'Hanging slats', body: 'Horizontal timber slats hung from the edge of the first-floor slab, carried on past the end of the house.' },
-  { x: GL[1][0] + 1.2, y: 1.4, z: GZ, title: 'Ground floor', body: 'Glazed full height either side of a white pier. In the render a stair and furniture show through the glass.' },
+  { x: GL[1][0] + 1.2, y: 1.4, z: GZ, title: 'Garden floor', body: 'Glazed full height either side of a white pier, opening onto the garden. The house sits on a slope: in the brochure plans the car porch is a floor below, on the street side.' },
   { x: (FIN1 + TW1) / 2, y: 10.9, z: -0.3, title: 'Dark volume', body: 'A narrow dark block to one side with two small upright windows to the front.' },
-]
+].map((p) => ({ ...p, x: p.x * S, y: p.y * S, z: p.z * S }))
 
 /** One house. ox: offset along the row. faint: a neighbour, drawn a tone lighter and without the rooms behind its glass. */
 function house(k, ox = 0, faint = false) {
   const tone = (a) => (faint ? 1 - (1 - a) * 0.15 : a)
   const weight = (l) => (!faint || !l || l === 'hair' ? l : 'soft')
-  const box = (x, y, z, w, h, d, a = WHITE, o = {}) => k.box(x + ox, y, z, w, h, d, tone(a), { ...o, line: weight(o.line ?? 'main'), ...(faint ? { shade: false, flat: true } : {}) })
-  const seg = (pairs, l = 'main') => k.seg(pairs.map(([p, q]) => [[p[0] + ox, p[1], p[2]], [q[0] + ox, q[1], q[2]]]), weight(l))
-  const pane = (x0, y0, x1, y1, z, a0, a1) => k.pane(x0 + ox, y0, x1 + ox, y1, z, tone(a0), tone(a1))
+  // everything below is in render units; these three turn it into metres and place it along the row
+  const box = (x, y, z, w, h, d, a = WHITE, o = {}) => k.box(x * S + ox, y * S, z * S, w * S, h * S, d * S, tone(a), { ...o, line: weight(o.line ?? 'main'), ...(faint ? { shade: false, flat: true } : {}) })
+  const seg = (pairs, l = 'main') => k.seg(pairs.map(([p, q]) => [[p[0] * S + ox, p[1] * S, p[2] * S], [q[0] * S + ox, q[1] * S, q[2] * S]]), weight(l))
+  const pane = (x0, y0, x1, y1, z, a0, a1) => k.pane(x0 * S + ox, y0 * S, x1 * S + ox, y1 * S, z * S, tone(a0), tone(a1))
   const heavy = { line: 'heavy' }, none = { line: false }, clean = { line: false, clean: true }
   const bar = (x0, y0, x1, y1, z, d = 0.07) => box((x0 + x1) / 2, (y0 + y1) / 2, z, x1 - x0, y1 - y0, d, METAL, none)
 

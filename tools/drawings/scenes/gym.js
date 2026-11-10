@@ -90,8 +90,8 @@ export default function gym(k) {
   for (const x of [-1.85, -0.6, 0.65]) treadmill(k, x, 3.3)
   bike(k, 2.25, 3.7, 0.35)
   // 外面：两排别墅面对面
-  villaRow(k, { n: 7, ox: 12, oz: -58, ry: -Math.PI / 2, ground: false, yard: true })
-  villaRow(k, { n: 7, ox: -12, oz: 10, ry: Math.PI / 2, ground: false, yard: true })
+  villaRow(k, { n: 8, ox: 12, oz: -58, ry: -Math.PI / 2, ground: false, yard: true })
+  villaRow(k, { n: 8, ox: -12, oz: 10, ry: Math.PI / 2, ground: false, yard: true })
   // 长泳池：从亭子前面一直往里，尽头往左拐一点
   const pool = smoothLoop([[-4.4, -1.5], [4.6, -1.5], [4.4, -16], [3.8, -30], [3.2, -42], [0.5, -52], [-4, -56], [-6, -50], [-3.6, -40], [-3.8, -26], [-4.3, -12]], 6)
   loop(pool, 0.02); loop(pool.map(([x, z]) => [x * 0.9, z * 0.99 - 0.1]), 0.02, true)

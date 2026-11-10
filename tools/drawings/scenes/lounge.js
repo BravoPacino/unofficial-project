@@ -76,7 +76,7 @@ export default function lounge(k) {
   k.groundPlane()
 
   // ── 后面：左后一排别墅（斜着往右后退），右后玻璃健身亭 + 折板门洞
-  villaRow(k, { n: 6, ox: -44, oz: -20, ry: 0.3, ground: false, yard: true })
+  villaRow(k, { n: 7, ox: -44, oz: -20, ry: 0.3, ground: false, yard: true })
   pavilion(k, { ox: 12.5, oz: -17, ry: -0.45, W: 9, D: 7, H: 5, eye })
   portal(k, 8.8, -8.5, -0.6)
 

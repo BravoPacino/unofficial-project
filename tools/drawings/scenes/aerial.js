@@ -13,7 +13,7 @@ export default function aerial(k) {
   const { tree, bush, smoothLine, smoothLoop, loop, line, slabShape, seg, box } = k
   const eye = [-3.5, 21, 25]
   k.groundPlane()
-  villaRow(k, { n: 15, ox: -15, oz: 14, ry: Math.PI / 2, ground: false, yard: true })
+  villaRow(k, { n: 17, ox: -15, oz: 14, ry: Math.PI / 2, ground: false, yard: true })
 
   // ── 泳池：沿一条弯的中线，左右各一个随位置变的半宽，两边连成一圈
   const C = smoothLine([[-1, 16], [0.5, 4], [-2.5, -8], [1.5, -19], [-0.5, -30], [2.5, -41], [6.5, -50], [5, -58]], 6)
