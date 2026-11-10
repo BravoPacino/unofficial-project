@@ -101,6 +101,14 @@ export default function walkway(k) {
   const A = [-6.4, 3.2], B = [10, 14.6], dx = B[0] - A[0], dz = B[1] - A[1], L = Math.hypot(dx, dz), W = 4.6
   const ux = dx / L, uz = dz / L, vx = -uz, vz = ux
   box((A[0] + B[0]) / 2, -0.25, (A[1] + B[1]) / 2, L, 0.8, W, { ry: Math.atan2(-dz, dx) })   // 桥面比地面高 0.15
+  // 桥两边各一道深的边梁（跨过车道那段看得到，深色），两头各一块铺地的落脚平台
+  const RY = Math.atan2(-dz, dx)
+  for (const sgn of [-1, 1]) box((A[0] + B[0]) / 2 + vx * sgn * (W / 2 - 0.12), -0.6, (A[1] + B[1]) / 2 + vz * sgn * (W / 2 - 0.12), L, 1.3, 0.24, { ry: RY, a: 0.3 })
+  for (const [P, s] of [[A, -1], [B, 1]]) {
+    const cx = P[0] + ux * s * 1.8, cz = P[1] + uz * s * 1.8
+    box(cx, 0.03, cz, 3.6, 0.06, W + 1.6, { ry: RY, soft: true, a: 0.93 })
+    for (const sgn of [-1, 1]) box(cx + vx * sgn * (W / 2 + 0.6), 0.35, cz + vz * sgn * (W / 2 + 0.6), 3.6, 0.7, 0.4, { ry: RY })   // 落脚处两边矮墙
+  }
   const rails = [], soft = []
   for (const sgn of [-1, 1]) {
     const ox = vx * sgn * (W / 2 - 0.1), oz = vz * sgn * (W / 2 - 0.1)
