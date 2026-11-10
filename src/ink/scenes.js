@@ -13,14 +13,11 @@ const make = (load, { aspect = 2, shadow, disc = true, focus = null, focusOf = n
 })
 
 const inBox = (x0, x1, y0, y1, z0, z1) => (x, y, z) => x >= x0 && x <= x1 && y >= y0 && y <= y1 && z >= z0 && z <= z1
-// the pedestrian bridge: its deck (walkway.js exports the outline), with what stands on it and the gap it crosses
-const onBridge = ({ DECK, inPoly }) => (x, y, z) => y > -3.4 && y < 2 && [[0, 0], [1.2, 0], [-1.2, 0], [0, 1.2], [0, -1.2]].some(([a, b]) => inPoly(DECK, x + a, z + b))
-
 export const SCENES = {
   villas: make(() => import('../../tools/drawings/scenes/villas.js'), { shadow: { x: 27, z: 4, r: 46 } }),
   // the pool itself: water, islands, fountains, the round spa
   pool: make(() => import('../../tools/drawings/scenes/pool.js'), { shadow: { x: 0, z: -12, r: 44 }, focus: inBox(-12.5, 13, -1, 3, -19.5, 25) }),
-  walkway: make(() => import('../../tools/drawings/scenes/walkway.js'), { shadow: { x: 2, z: 9, r: 22 }, focusOf: (mod) => onBridge(mod.BRIDGE) }),
+  walkway: make(() => import('../../tools/drawings/scenes/walkway.js'), { shadow: { x: 2, z: 9, r: 22 } }),   // drawn in full, every element of the brochure image (the user's choice; no focus)
   // the timber deck and its two nests
   lounge: make(() => import('../../tools/drawings/scenes/lounge.js'), { shadow: { x: 0, z: 2, r: 16 }, focus: inBox(-7.5, 6, -1, 3.2, -1.6, 5) }),
   // the four treadmills
