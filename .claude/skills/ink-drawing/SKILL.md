@@ -86,3 +86,17 @@ Start the dev server first: `npx vite --port 4390`. The test page is `/unofficia
 - Look at the phone at device scale 3 and at a native-pixel crop of the desktop before saying it is clean.
 - `npx eslint src`, `npx vite build`; for a preview, `npx vite build --base ./ --outDir <dir>` and publish that folder.
 - Tests run on software WebGL. Smoothness on a real phone has not been measured; say so.
+
+
+## The one take (the page itself)
+
+The site's main page is one camera through the drawings (`src/ink/Flight.jsx`, stops and notes in `src/ink/route.js`; plan in `docs/animation-plan.md`). Rules learned building it:
+
+- One scene per stop; at most two alive (this one and the next). Stops change dot by dot (`MIX_FS`: old dots shrink, new grow, about two stipple grains a cell) — never a cross-fade.
+- Light is fixed in the world per stop (`stage.worldLight(dir, dwellLook)`); a camera-relative light makes shadows slide as the camera moves. Shadow maps recompute only when the light moves (`renderer.shadowMap.autoUpdate = false`).
+- On the way through, scenes are drawn in full (no ghosting) but keep only the trees inside their subject (`adaptKit(..., { trees })`): a 3D tree in front of a moving camera is a black trunk across the picture.
+- Keep the camera near the angle the scene was traced from (±20°): the back sides were never drawn.
+- Square-on houses: end on `square(VIEW)` (a look camera with a frustum `shift`) so the last frame is the elevation drawing exactly.
+- Moving: render at DPR 1; stopped: one sharp frame at full DPR. Nothing built while the section is a screen away.
+- Notes are real HTML (read in order by screen readers), labels kept on screen and below the nav bar; copy only from the site's own text.
+- Film with `tools/ink/film-page.cjs` (frame by frame; swiftshader is too slow to screen-record). Don't edit served files while it runs: Vite's hot reload remounts the page.

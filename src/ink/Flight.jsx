@@ -68,7 +68,10 @@ export default function Flight({ onFail }) {
     try { renderer = makeRenderer(canvas) } catch { failRef.current?.(); return undefined }
     renderer.shadowMap.autoUpdate = false                                      // shadows are worked out again only when a light moves
     const now = Date.now(), light = lightAt(now, dayOf(now))
-    clockRef.current.textContent = `George Town · ${clockOf(now)} · the light in these drawings is the sun there now`
+    // honest about the dark: with the sun down, the drawings keep the day's first or last light (light.js)
+    const day = dayOf(now)
+    clockRef.current.textContent = `George Town · ${clockOf(now)} · ` + (light.up ? 'the light in these drawings is the sun there now'
+      : now < day.noon ? 'before sunrise there: drawn in first light' : 'after dark there: drawn in the day’s last light')
 
     // the two drawings being mixed, and the full-screen pass that mixes them dot by dot
     const rt = () => { const r = new THREE.WebGLRenderTarget(4, 4, { samples: 0 }); r.texture.colorSpace = THREE.SRGBColorSpace; return r }
