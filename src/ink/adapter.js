@@ -41,6 +41,7 @@ export function treeGeometry(x, z, h, seed, { depth = 8, spread = 1 } = {}) {
  * flat paper, faint lines, no shadow of its own, so the eye stays on the subject. No focus: everything is drawn in full.
  */
 export function adaptKit(ink, focus = null) {
+  if (typeof location !== 'undefined' && /nofocus/.test(location.search)) focus = null   // test pages: every line in full, for overlays
   const inFocus = (x, y, z) => !focus || focus(x, y, z)
   const centre = (g) => { g.computeBoundingBox(); const c = new THREE.Vector3(); g.boundingBox.getCenter(c); return c }
   const GHOST = (a) => 1 - (1 - a) * 0.06
