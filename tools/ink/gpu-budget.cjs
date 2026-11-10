@@ -1,4 +1,4 @@
-// 一路滚完整个页面，记下 GPU 上同时占着多少内存（纹理 + 渲染缓冲 + 每个 WebGL 画布的绘图缓冲）和多少个 WebGL 上下文。
+// 一路滚完整个页面，记下 GPU 上同时占着多少内存（纹理 + 渲染缓冲 + 顶点/索引缓冲，即几何体）和多少个 WebGL 上下文。
 // node tools/ink/gpu-budget.cjs [W H] [url]   手机上一页超过几百 MB 就会被系统杀掉（页面闪退重载）。
 const { chromium } = require('playwright')
 ;(async () => {
@@ -20,6 +20,11 @@ const { chromium } = require('playwright')
       wrap('deleteTexture', function ([t]) { live.delete(t) })
       wrap('texImage2D', function (a) { const t = cur.get(this); if (t && typeof a[3] === 'number' && a[1] === 0) { live.set(t, a[3] * a[4] * (bpp[a[2]] || 4)); note() } })
       wrap('texStorage2D', function (a) { const t = cur.get(this); if (t) { live.set(t, a[3] * a[4] * (bpp[a[2]] || 4) * (a[1] > 1 ? 1.34 : 1)); note() } })
+      // vertex and index buffers: the geometry of every drawing held at once
+      const bufs = new WeakMap()
+      wrap('bindBuffer', function ([target, b]) { const m = bufs.get(this) || new Map(); m.set(target, b); bufs.set(this, m) })
+      wrap('bufferData', function ([target, d]) { const b = bufs.get(this)?.get(target); if (b) { live.set(b, typeof d === 'number' ? d : d?.byteLength || 0); note() } })
+      wrap('deleteBuffer', function ([b]) { live.delete(b) })
       wrap('bindRenderbuffer', function ([, r]) { bound.set(this, r) })
       wrap('deleteRenderbuffer', function ([r]) { live.delete(r) })
       wrap('renderbufferStorage', function (a) { const r = bound.get(this); if (r) { live.set(r, a[2] * a[3] * (bpp[a[1]] || 4)); note() } })

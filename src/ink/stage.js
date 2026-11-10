@@ -97,7 +97,8 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
   const flats = new Map()
   const flatMat = (a) => flats.get(a) || flats.set(a, new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(a, a, a * 0.5, THREE.LinearSRGBColorSpace) })).get(a)
   const mat = (a, clean = false) => { const k = a + (clean ? 'c' : ''); return mats.get(k) || mats.set(k, grey(a, clean)).get(k) }
-  const lines = { heavy: [], main: [], soft: [], hair: [], ghost: [] }
+  const newStore = () => ({ heavy: [], main: [], soft: [], hair: [], ghost: [] })
+  let store = newStore(), parent = scene                     // where the kit puts things: the scene, or a chunk being built
 
   const kit = {
     THREE,
@@ -105,8 +106,8 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
      *  clean: no mottling or specks (glass, rooms behind glass). shade: receives cast shadows. flat: unlit. */
     box(x, y, z, w, h, d, a = 0.97, { line = 'main', cast = true, clean = false, shade = true, flat = false, ry = 0 } = {}) {
       const g = new THREE.BoxGeometry(w, h, d).applyMatrix4(new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z))
-      const m = new THREE.Mesh(g, flat ? flatMat(a) : mat(a, clean)); m.castShadow = cast; m.receiveShadow = shade; m.layers.set(L_SOLID); scene.add(m)
-      if (line) lines[line].push(...new THREE.EdgesGeometry(g, 1).attributes.position.array)
+      const m = new THREE.Mesh(g, flat ? flatMat(a) : mat(a, clean)); m.castShadow = cast; m.receiveShadow = shade; m.layers.set(L_SOLID); parent.add(m)
+      if (line) store[line].push(...new THREE.EdgesGeometry(g, 1).attributes.position.array)
       return m
     },
     /** An upright rectangle facing the viewer whose grey runs from a0 (bottom) to a1 (top). Clean.
@@ -115,7 +116,7 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
       const g = new THREE.PlaneGeometry(x1 - x0, y1 - y0).translate((x0 + x1) / 2, (y0 + y1) / 2, z)
       const c = []; for (let i = 0; i < 4; i++) { const a = g.attributes.position.getY(i) > (y0 + y1) / 2 ? a1 : a0; c.push(a, a, a * 0.5) }
       g.setAttribute('color', new THREE.Float32BufferAttribute(c, 3))
-      const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true })); m.receiveShadow = shade; m.layers.set(L_SOLID); scene.add(m)
+      const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true })); m.receiveShadow = shade; m.layers.set(L_SOLID); m.userData.own = true; parent.add(m)
     },
     /** A veil that only darkens what is behind it, from k0 (bottom) to k1 (top), 1 = no change: the gloom under a soffit. */
     veil(x0, y0, x1, y1, z, k0 = 1, k1 = 0.7) {
@@ -123,18 +124,18 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
       const c = []; for (let i = 0; i < 4; i++) { const k = g.attributes.position.getY(i) > (y0 + y1) / 2 ? k1 : k0; c.push(k, k, k) }
       g.setAttribute('color', new THREE.Float32BufferAttribute(c, 3))
       const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, blending: THREE.MultiplyBlending, transparent: true, premultipliedAlpha: true, depthWrite: false }))
-      m.layers.set(L_TONE); m.renderOrder = 5; scene.add(m)
+      m.layers.set(L_TONE); m.renderOrder = 5; m.userData.own = true; parent.add(m)
     },
     /** Any geometry: grey a; line: edge weight or false; angle: crease angle that counts as an edge. */
     mesh(g, a = 0.97, { line = 'main', angle = 25, cast = true, clean = false, shade = true, flat = false } = {}) {
-      const m = new THREE.Mesh(g, flat ? flatMat(a) : mat(a, clean)); m.castShadow = cast; m.receiveShadow = shade; m.layers.set(L_SOLID); scene.add(m)
-      if (line) lines[line].push(...new THREE.EdgesGeometry(g, angle).attributes.position.array)
+      const m = new THREE.Mesh(g, flat ? flatMat(a) : mat(a, clean)); m.castShadow = cast; m.receiveShadow = shade; m.layers.set(L_SOLID); parent.add(m)
+      if (line) store[line].push(...new THREE.EdgesGeometry(g, angle).attributes.position.array)
       return m
     },
     /** Raw line positions (x, y, z per vertex, two vertices per segment) */
-    lines(arr, line = 'main') { for (let i = 0; i < arr.length; i++) lines[line].push(arr[i]) },
+    lines(arr, line = 'main') { for (let i = 0; i < arr.length; i++) store[line].push(arr[i]) },
     /** Ink lines given as pairs of points. */
-    seg(pairs, line = 'main') { for (const [p, q] of pairs) lines[line].push(...p, ...q) },
+    seg(pairs, line = 'main') { for (const [p, q] of pairs) store[line].push(...p, ...q) },
     rect(x0, y0, x1, y1, z, line = 'main') { kit.seg([[[x0, y0, z], [x1, y0, z]], [[x1, y0, z], [x1, y1, z]], [[x1, y1, z], [x0, y1, z]], [[x0, y1, z], [x0, y0, z]]], line) },
   }
 
@@ -150,13 +151,39 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
   const depthOnly = new THREE.MeshBasicMaterial({ colorWrite: false, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 })
   const lineMats = []
 
-  function finish() {
+  let lineK = 1
+  // the gathered edges as fat lines, one object per weight, put into `into`
+  function addLines(into) {
+    const made = []
     for (const [name, opacity] of [['ghost', 0.18], ['hair', 0.5], ['soft', 0.72], ['main', 1], ['heavy', 1]]) {
-      if (!lines[name].length) continue
-      const m = new LineMaterial({ color: new THREE.Color(ink), linewidth: WEIGHT[name], transparent: opacity < 1, opacity, depthWrite: false })
-      const l = new LineSegments2(new LineSegmentsGeometry().setPositions(lines[name]), m); l.layers.set(L_LINE); scene.add(l); lineMats.push([m, WEIGHT[name]])
+      if (!store[name].length) continue
+      const m = new LineMaterial({ color: new THREE.Color(ink), linewidth: WEIGHT[name] * lineK * size.dpr, transparent: opacity < 1, opacity, depthWrite: false })
+      m.resolution.set(size.w * size.dpr, size.h * size.dpr)
+      const l = new LineSegments2(new LineSegmentsGeometry().setPositions(store[name]), m); l.layers.set(L_LINE); into.add(l)
+      const e = [m, WEIGHT[name]]; lineMats.push(e); made.push(e)
     }
+    store = newStore()
+    return made
   }
+  function finish() { addLines(scene) }
+
+  // chunks: parts of one large drawing, built and freed as the camera comes and goes (the one take). Everything the kit
+  // draws inside build(kit) is placed at (x, y, z), turned ry about the vertical, and can be freed alone with drop(name).
+  const chunks = new Map()
+  function chunk(name, [x, y, z] = [0, 0, 0], ry = 0, build) {
+    const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; scene.add(g)
+    const was = parent, kept = store
+    parent = g; store = newStore()
+    try { build(kit); g.userData.lineMats = addLines(g) } finally { parent = was; store = kept }
+    g.updateMatrixWorld(true); chunks.set(name, g); renderer.shadowMap.needsUpdate = true
+  }
+  function drop(name) {
+    const g = chunks.get(name); if (!g) return
+    g.traverse((o) => { o.geometry?.dispose(); if (o.userData.own) o.material.dispose() })
+    for (const e of g.userData.lineMats || []) { e[0].dispose(); lineMats.splice(lineMats.indexOf(e), 1) }
+    scene.remove(g); chunks.delete(name); renderer.shadowMap.needsUpdate = true
+  }
+  const has = (name) => chunks.has(name)
 
   let size = { w: 4, h: 4, dpr: 1 }
   // camera and line scale for view v in a w × h box (CSS px); nothing is rebuilt, so it is cheap enough to call every frame
@@ -178,7 +205,8 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
     }
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert()
     fitShadow(shadowOf(v).r)
-    const k = Math.max(0.58, Math.min(1.15, w / width / 44))            // lines thin out when the drawing is small
+    const k = Math.max(0.58, Math.min(1.15, (v.lineK ?? 1) * w / width / 44))   // lines thin out when the drawing is small
+    lineK = k
     for (const [m, lw] of lineMats) { m.resolution.set(w * dpr, h * dpr); m.linewidth = lw * k * dpr }
   }
 
@@ -234,5 +262,5 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
     target.dispose()
     if (!shared) { renderer.dispose(); renderer.forceContextLoss() }
   }
-  return { kit, finish, resize, frame, render, project, worldLight, dispose }
+  return { kit, finish, chunk, drop, has, resize, frame, render, project, worldLight, dispose, scene }
 }

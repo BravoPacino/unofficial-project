@@ -69,8 +69,8 @@ export const STOPS = [
   {
     model: 'villas', len: 2.0, dwell: 0.62, keep: 0.45, light: 'square', shadow: { x: 0, z: -4, r: 22 },
     path: [
-      { eye: [12, 6, 32], at: [0, 5.4, 0], fov: 36 },
-      { eye: [5, 3, 27], at: [0, 4.6, 0], fov: 38, shift: [0, 0.07] },
+      { eye: [-12, 6, 32], at: [0, 5.4, 0], fov: 36 },                          // in from the left: the take runs along +x
+      { eye: [-5, 3, 27], at: [0, 4.6, 0], fov: 38, shift: [0, 0.07] },
       square(VILLAS_VIEW, 1.5),
       square(VILLAS_VIEW),
     ],

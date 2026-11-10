@@ -40,11 +40,12 @@ export function treeGeometry(x, z, h, seed, { depth = 8, spread = 1 } = {}) {
  * focus(x, y, z): is this point part of the one thing the drawing is about? Anything whose centre is not is a ghost:
  * flat paper, faint lines, no shadow of its own, so the eye stays on the subject. No focus: everything is drawn in full.
  */
-export function adaptKit(ink, focus = null, { trees = focus } = {}) {
+// ghosts: false draws what a scene marks faint (k.ghost) in full, as the one take does: every place on the way is the subject
+export function adaptKit(ink, focus = null, { trees = focus, ghosts = true } = {}) {
   if (typeof location !== 'undefined' && /nofocus/.test(location.search)) focus = trees = null   // test pages: every line in full, for overlays
   let faint = false                                      // inside ghost(): everything drawn is a ghost, wherever it stands
   const inFocus = (x, y, z) => !faint && (!focus || focus(x, y, z))
-  const ghost = (fn) => { const was = faint; faint = true; try { return fn() } finally { faint = was } }
+  const ghost = (fn) => { if (!ghosts) return fn(); const was = faint; faint = true; try { return fn() } finally { faint = was } }
   const centre = (g) => { g.computeBoundingBox(); const c = new THREE.Vector3(); g.boundingBox.getCenter(c); return c }
   const GHOST = (a) => 1 - (1 - a) * 0.06
   const seg = (pairs, soft = false) => {
@@ -134,10 +135,7 @@ export function adaptKit(ink, focus = null, { trees = focus } = {}) {
   const column = (x, z, r, y0, y1, _eye, soft = false) => mesh(new THREE.CylinderGeometry(r, r, y1 - y0, 20).translate(x, (y0 + y1) / 2, z), { soft, angle: 40, a: 0.9 })
   // smooth shells (the lounge nests): the crease edges stand in for the silhouette
   const smooth = (g, _eye, { soft = false, angle = 35, crease = true } = {}) => mesh(g, { soft, angle: crease ? angle : 60, a: 0.9 })
-  const car = (x, z, ry = 0, oy = 0) => {
-    const p = place(x, z, ry, oy)
-    p.box(0, 0.75, 0, 1.8, 0.8, 4.5, { a: 0.7 }); p.box(0, 1.45, 0.25, 1.6, 0.6, 2.3, { a: 0.45 })
-    for (const [dx, dz] of [[-0.9, -1.4], [0.9, -1.4], [-0.9, 1.4], [0.9, 1.4]]) mesh(p.geo(new THREE.CylinderGeometry(0.34, 0.34, 0.22, 16).rotateZ(Math.PI / 2).translate(dx, 0.34, dz)), { angle: 40, a: 0.12 })
-  }
+  // cars are left out of every drawing (the user's call): a scene may still ask for one, and gets nothing
+  const car = () => {}
   return { THREE, box, mesh, seg, plate, tree, bush, smoothLoop, smoothLine, loop, line, slabShape, groundPlane, car, place, column, prismX, smooth, ribbon, ghost, P: {}, scene: null }
 }
