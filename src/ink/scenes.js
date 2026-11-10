@@ -13,14 +13,8 @@ const make = (load, { aspect = 2, shadow, disc = true, focus = null, focusOf = n
 })
 
 const inBox = (x0, x1, y0, y1, z0, z1) => (x, y, z) => x >= x0 && x <= x1 && y >= y0 && y <= y1 && z >= z0 && z <= z1
-// the pedestrian bridge: within a band around its centre line (walkway.js: A → B, 4.6 m wide)
-const onBridge = ({ A, B }) => (x, y, z) => {
-  const dx = B[0] - A[0], dz = B[1] - A[1], L2 = dx * dx + dz * dz
-  const t = Math.max(0, Math.min(1, ((x - A[0]) * dx + (z - A[1]) * dz) / L2))
-  const ext = 4.2 / Math.sqrt(L2), tt = ((x - A[0]) * dx + (z - A[1]) * dz) / L2
-  // down to the road below, so the gap the bridge crosses (walls, road, the car under it) is drawn with it
-  return y > -3.4 && y < 2 && tt > -ext && tt < 1 + ext && Math.hypot(x - A[0] - dx * t, z - A[1] - dz * t) < 4.5
-}
+// the pedestrian bridge: its deck (walkway.js exports the outline), with what stands on it and the gap it crosses
+const onBridge = ({ DECK, inPoly }) => (x, y, z) => y > -3.4 && y < 2 && [[0, 0], [1.2, 0], [-1.2, 0], [0, 1.2], [0, -1.2]].some(([a, b]) => inPoly(DECK, x + a, z + b))
 
 export const SCENES = {
   villas: make(() => import('../../tools/drawings/scenes/villas.js'), { shadow: { x: 27, z: 4, r: 46 } }),
