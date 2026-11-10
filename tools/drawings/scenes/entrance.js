@@ -61,8 +61,8 @@ export default function entrance(k) {
 
   // ── 右边出口：黑色钢构矮雨棚（细柱 + 平顶）+ 放下的拦车杆
   const c0 = X1 + 0.4, c1 = X1 + 14, cz0 = 1.5, cz1 = -10, ch = 4.2
-  box((c0 + c1) / 2, ch + 0.15, (cz0 + cz1) / 2, c1 - c0, 0.3, cz0 - cz1)
-  for (const x of [c0 + 0.3, c0 + 4.8, c0 + 9.3, c1 - 0.3]) for (const z of [cz0 - 0.3, cz1 + 0.3]) box(x, ch / 2, z, 0.18, ch, 0.18)
+  box((c0 + c1) / 2, ch + 0.15, (cz0 + cz1) / 2, c1 - c0, 0.3, cz0 - cz1, { a: 0.14 })
+  for (const x of [c0 + 0.3, c0 + 4.8, c0 + 9.3, c1 - 0.3]) for (const z of [cz0 - 0.3, cz1 + 0.3]) box(x, ch / 2, z, 0.18, ch, 0.18, { a: 0.14 })
   const bars = []
   for (let x = c0 + 0.6; x < c1; x += 0.5) bars.push([[x, ch, cz0], [x, ch, cz1]])
   seg(bars, true)

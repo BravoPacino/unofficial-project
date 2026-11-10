@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
+import InkPlate from '../ink/InkPlate'
 
 export default function Enquire() {
   const sectionRef = useRef()
@@ -28,13 +29,9 @@ export default function Enquire() {
       justifyContent: 'center',
       overflow: 'hidden'
     }}>
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: `url(${import.meta.env.BASE_URL}drawings/entrance-ink.webp)`,
-        backgroundSize: 'cover', backgroundPosition: 'center 70%',
-        opacity: 0.55,
-        zIndex: 0
-      }} />
+      <div style={{ position: 'absolute', inset: 0, opacity: 0.6, zIndex: 0 }}>
+        <InkPlate scene="entrance" still={`${import.meta.env.BASE_URL}drawings/entrance-ink.webp`} alt="The entrance, drawing" fit="cover" />
+      </div>
 
       <div style={{
         position: 'absolute', inset: 0, zIndex: 1,

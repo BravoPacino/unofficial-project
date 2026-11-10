@@ -41,28 +41,52 @@ const STIPPLE_FS = /* glsl */`
     #include <colorspace_fragment>
   }`
 
-export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) {
+/** A WebGL renderer set up for ink. Several stages can share one (pass it as `renderer`). */
+export function makeRenderer(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, premultipliedAlpha: false })
   renderer.setClearColor(0x000000, 0)
   renderer.autoClear = false
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFShadowMap
+  return renderer
+}
+
+/**
+ * view: either a square-on façade view { cx, cy, width, eye, dist, camX } (see project.js),
+ * or an oblique one { look: { eye: [x,y,z], at: [x,y,z], fov, aspect } } where fov is vertical at that aspect.
+ * Either may carry shadow: { x, z, r } — the ground area, in metres, the sun's shadows must cover.
+ */
+export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', renderer: shared = null }) {
+  const renderer = shared || makeRenderer(canvas)
 
   const scene = new THREE.Scene()
   const NEAR = 1, FAR = 400
   const camera = new THREE.PerspectiveCamera(30, 1, NEAR, FAR)
   let shown = view
-  const aim = (v) => { camera.position.set(v.camX ?? v.cx, v.eye, v.dist); camera.rotation.set(0, 0, 0); camera.updateMatrixWorld() }
+  const aim = (v) => {
+    if (v.look) { camera.position.set(...v.look.eye); camera.lookAt(...v.look.at) }
+    else { camera.position.set(v.camX ?? v.cx, v.eye, v.dist); camera.rotation.set(0, 0, 0) }
+    camera.updateMatrixWorld()
+  }
+  // the light is kept in front of whoever is looking: (x, y, z) of light.js are the camera's right, up and back
+  const toWorld = (v, d) => {
+    if (!v.look) return d
+    const [ex, , ez] = v.look.eye, [ax, , az] = v.look.at, L = Math.hypot(ax - ex, az - ez) || 1, fx = (ax - ex) / L, fz = (az - ez) / L
+    // and swung round to the side, so shadows fall across what is seen rather than behind it
+    const sx = d[0] * 1.35 + Math.sign(d[0] || 1) * 0.12, sz = d[2] * 0.9, n = Math.hypot(sx, d[1], sz)
+    const [x, y, z] = [sx / n, d[1] / n, sz / n]
+    return [-fz * x - fx * z, y, fx * x - fz * z]
+  }
+  const shadowOf = (v) => v.shadow || (v.look ? { x: v.look.at[0], z: v.look.at[2], r: 40 } : { x: v.cx, z: -4, r: 22 })
   aim(view)
 
   scene.add(new THREE.AmbientLight(0xffffff, AMBIENT * Math.PI))
   const sun = new THREE.DirectionalLight(0xffffff, Math.PI)
   sun.castShadow = true
   sun.shadow.mapSize.set(4096, 4096)
-  Object.assign(sun.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 60, far: 170 })
-  sun.shadow.camera.updateProjectionMatrix()
+  const fitShadow = (r) => { Object.assign(sun.shadow.camera, { left: -r, right: r, top: r, bottom: -r, near: 1, far: 260 }); sun.shadow.camera.updateProjectionMatrix() }
+  fitShadow(22)
   sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.012
-  sun.target.position.set(view.cx, 5, -4)
   scene.add(sun, sun.target)
 
   // clean surfaces carry half the blue: the stipple pass reads that as "no mottling, no specks"
@@ -78,8 +102,8 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) 
     THREE,
     /** A box: centre, size, grey value. line: weight of its edges ('heavy' | 'main' | 'soft' | 'hair'), or false for none.
      *  clean: no mottling or specks (glass, rooms behind glass). shade: receives cast shadows. flat: unlit. */
-    box(x, y, z, w, h, d, a = 0.97, { line = 'main', cast = true, clean = false, shade = true, flat = false } = {}) {
-      const g = new THREE.BoxGeometry(w, h, d).translate(x, y, z)
+    box(x, y, z, w, h, d, a = 0.97, { line = 'main', cast = true, clean = false, shade = true, flat = false, ry = 0 } = {}) {
+      const g = new THREE.BoxGeometry(w, h, d).applyMatrix4(new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z))
       const m = new THREE.Mesh(g, flat ? flatMat(a) : mat(a, clean)); m.castShadow = cast; m.receiveShadow = shade; m.layers.set(L_SOLID); scene.add(m)
       if (line) lines[line].push(...new THREE.EdgesGeometry(g, 1).attributes.position.array)
       return m
@@ -100,6 +124,14 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) 
       const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, blending: THREE.MultiplyBlending, transparent: true, premultipliedAlpha: true, depthWrite: false }))
       m.layers.set(L_TONE); m.renderOrder = 5; scene.add(m)
     },
+    /** Any geometry: grey a; line: edge weight or false; angle: crease angle that counts as an edge. */
+    mesh(g, a = 0.97, { line = 'main', angle = 25, cast = true, clean = false, shade = true, flat = false } = {}) {
+      const m = new THREE.Mesh(g, flat ? flatMat(a) : mat(a, clean)); m.castShadow = cast; m.receiveShadow = shade; m.layers.set(L_SOLID); scene.add(m)
+      if (line) lines[line].push(...new THREE.EdgesGeometry(g, angle).attributes.position.array)
+      return m
+    },
+    /** Raw line positions (x, y, z per vertex, two vertices per segment) */
+    lines(arr, line = 'main') { for (let i = 0; i < arr.length; i++) lines[line].push(arr[i]) },
     /** Ink lines given as pairs of points. */
     seg(pairs, line = 'main') { for (const [p, q] of pairs) lines[line].push(...p, ...q) },
     rect(x0, y0, x1, y1, z, line = 'main') { kit.seg([[[x0, y0, z], [x1, y0, z]], [[x1, y0, z], [x1, y1, z]], [[x1, y1, z], [x0, y1, z]], [[x0, y1, z], [x0, y0, z]]], line) },
@@ -130,11 +162,20 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) 
     renderer.setPixelRatio(dpr); renderer.setSize(w, h, false)
     target.setSize(Math.round(w * dpr), Math.round(h * dpr))
     shown = v; aim(v)
-    const f = frustum(v, w, h, NEAR)
-    // written straight into the matrix: updateProjectionMatrix() would replace this shifted frustum with a centred one
-    camera.projectionMatrix.makePerspective(f.left, f.right, f.top, f.bottom, NEAR, FAR)
+    let width = v.width
+    if (v.look) {
+      // keep the horizontal angle the view was framed with, whatever the box's shape
+      const tanH = Math.tan((v.look.fov * Math.PI) / 360) * (v.look.aspect || 2), tanV = tanH * (h / w)
+      camera.projectionMatrix.makePerspective(-tanH * NEAR, tanH * NEAR, tanV * NEAR, -tanV * NEAR, NEAR, FAR)
+      const [ex, ey, ez] = v.look.eye, [ax, ay, az] = v.look.at
+      width = 2 * tanH * Math.hypot(ax - ex, ay - ey, az - ez)              // metres across at the point looked at
+    } else {
+      const f = frustum(v, w, h, NEAR)
+      // written straight into the matrix: updateProjectionMatrix() would replace this shifted frustum with a centred one
+      camera.projectionMatrix.makePerspective(f.left, f.right, f.top, f.bottom, NEAR, FAR)
+    }
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert()
-    const width = v.width
+    fitShadow(shadowOf(v).r)
     quadMat.uniforms.uRes.value.set(w * dpr, h * dpr); quadMat.uniforms.uDpr.value = dpr; quadMat.uniforms.uCell.value = Math.max(1.8, Math.min(2.6, w / 300))   // dots in CSS px: finer on a small drawing
     const k = Math.max(0.58, Math.min(1.15, w / width / 44))            // lines thin out when the drawing is small
     for (const [m, lw] of lineMats) { m.resolution.set(w * dpr, h * dpr); m.linewidth = lw * k * dpr }
@@ -142,8 +183,9 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) 
 
   /** dir: unit vector pointing from the scene towards the sun */
   function render(dir) {
-    sun.position.set(shown.cx + dir[0] * 110, 5 + dir[1] * 110, -4 + dir[2] * 110)
-    sun.target.position.set(shown.cx, 5, -4)
+    const s = shadowOf(shown), wd = toWorld(shown, dir)
+    sun.position.set(s.x + wd[0] * 120, 4 + wd[1] * 120, s.z + wd[2] * 120)
+    sun.target.position.set(s.x, 4, s.z)
     sun.intensity = (Math.PI * (1 - AMBIENT)) / Math.max(dir[2], 0.25)       // a face square to the drawing, in the sun, prints at its own grey
     camera.layers.set(L_SOLID); camera.layers.enable(L_TONE)
     renderer.setRenderTarget(target); renderer.clear(); renderer.render(scene, camera)
@@ -154,6 +196,6 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) 
     camera.layers.set(L_LINE); renderer.render(scene, camera)
   }
 
-  const dispose = () => { renderer.dispose(); target.dispose(); renderer.forceContextLoss() }
+  const dispose = () => { target.dispose(); if (!shared) { renderer.dispose(); renderer.forceContextLoss() } }
   return { kit, finish, resize, render, dispose }
 }

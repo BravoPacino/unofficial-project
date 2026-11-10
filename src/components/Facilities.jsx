@@ -3,15 +3,16 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import SplitText from './SplitText'
 import { lenisRef } from '../lib/lenis'
+import InkPlate from '../ink/InkPlate'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const facilities = [
-  { label: 'Resort-Style Pool', img: `${import.meta.env.BASE_URL}drawings/pool-gold.webp`, ar: 2 },
-  { label: 'Pedestrian Bridges', img: `${import.meta.env.BASE_URL}drawings/walkway-gold.webp`, ar: 2 },
-  { label: 'Lounge Decks', img: `${import.meta.env.BASE_URL}drawings/lounge-gold.webp`, ar: 2 },
-  { label: 'Floating Gym', img: `${import.meta.env.BASE_URL}drawings/gym-gold.webp`, ar: 2 },
-  { label: 'Serene Courtyards', img: `${import.meta.env.BASE_URL}drawings/aerial-gold.webp`, ar: 0.5625 },
+  { label: 'Resort-Style Pool', img: `${import.meta.env.BASE_URL}drawings/pool-gold.webp`, ar: 2, plate: 'pool' },
+  { label: 'Pedestrian Bridges', img: `${import.meta.env.BASE_URL}drawings/walkway-gold.webp`, ar: 2, plate: 'walkway' },
+  { label: 'Lounge Decks', img: `${import.meta.env.BASE_URL}drawings/lounge-gold.webp`, ar: 2, plate: 'lounge' },
+  { label: 'Floating Gym', img: `${import.meta.env.BASE_URL}drawings/gym-gold.webp`, ar: 2, plate: 'gym' },
+  { label: 'Serene Courtyards', img: `${import.meta.env.BASE_URL}drawings/aerial-gold.webp`, ar: 0.5625, plate: 'aerial' },
 ]
 
 const REST = 0.15
@@ -135,7 +136,7 @@ export default function Facilities() {
             fontSize: '0.65rem', letterSpacing: '0.12em',
             color: 'rgba(240,232,213,0.3)',
             marginTop: '1rem'
-          }}>— drag or scroll to explore</p>
+          }}>— drag or scroll to explore · shadows follow the sun over George Town now</p>
         </div>
 
         <div ref={trackRef} className="fac-track">
@@ -143,29 +144,24 @@ export default function Facilities() {
             <div key={i} className="fac-card" style={{ opacity: 0, '--ar': f.ar }}
               onMouseEnter={e => {
                 gsap.to(e.currentTarget.querySelector('.fac-img'), {
-                  scale: 1.04, filter: 'brightness(1.1)',
+                  scale: 1.04,
                   duration: 0.7, ease: 'power2.out'
                 })
               }}
               onMouseLeave={e => {
                 gsap.to(e.currentTarget.querySelector('.fac-img'), {
-                  scale: 1, filter: 'brightness(0.9)',
+                  scale: 1,
                   duration: 0.7, ease: 'power2.out'
                 })
               }}
             >
-              <div className="fac-img" style={{
-                position: 'absolute', inset: 0,
-                backgroundImage: `url(${f.img})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                filter: 'brightness(0.9)',
-                transition: 'none'
-              }} />
+              <div className="fac-img" style={{ position: 'absolute', inset: 0 }}>
+                <InkPlate scene={f.plate} still={f.img} alt={`${f.label}, drawing`} fit="cover" />
+              </div>
 
               <div style={{
                 position: 'absolute', inset: 0,
-                background: 'linear-gradient(to top, rgba(8,8,6,0.75) 0%, transparent 32%)'
+                background: 'linear-gradient(to top, rgba(8,8,6,0.62) 0%, transparent 26%)'
               }} />
 
               <div style={{
@@ -173,7 +169,7 @@ export default function Facilities() {
                 top: '1.2rem', left: '1.5rem',
                 fontFamily: 'Cormorant Garamond, serif',
                 fontSize: '5rem', fontWeight: 300,
-                color: 'rgba(200,168,107,0.15)',
+                color: 'rgba(33,30,26,0.16)',
                 lineHeight: 1, userSelect: 'none'
               }}>0{i + 1}</div>
 

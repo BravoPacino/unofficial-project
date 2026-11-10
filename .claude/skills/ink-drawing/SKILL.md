@@ -46,6 +46,12 @@ Kit calls a model uses:
 - **Sun**: `src/ink/light.js`. The time is real (sun over George Town now); the façade orientation is unknown, so the light is kept in front, morning from the left, afternoon from the right. Drawn altitude is clamped to 14–52° (or recesses go black at noon). Before sunrise and after dark, say so and keep first or last light. Say all of this in a note under the drawing.
 - **Interaction**: drag sideways or use the arrow keys to move the time; let go and it drifts back to live. On touch, a vertical swipe must still scroll. Orange squares open notes. No crosshair, coordinates or extension lines (Heron's layout language).
 
+## The oblique scenes (done)
+
+Villas, pool, walkway, lounge, gym, aerial and entrance are the line-drawing scenes in `tools/drawings/scenes/`, built into the ink stage unchanged through `src/ink/adapter.js` (same calls as `tools/drawings/kit.js`; a box or mesh may carry `{ a: grey }`, soft parts default to 0.8, trees are 3D bare branches that cast shadows). `src/ink/scenes.js` lists them with their shadow area. A view with `look: { eye, at, fov, aspect }` is an oblique camera; the light is turned to stay in front of it and swung to the side so shadows fall across what is seen.
+
+In the site they are `<InkPlate scene=… still=… />` (`src/ink/InkPlate.jsx`): looked at, not dragged, redrawn once a minute, all drawn through one shared WebGL context and copied into each card's own canvas. Test page: `sample.html?plates`.
+
 ## Making a new scene
 
 1. Model it in `src/ink/<scene>.js` like `homes.js`: one exported default `(kit) => …`, `VIEW` / `CARD_VIEW` / `NARROW_VIEW`, `SPOTS`, and an `OUTLINE` of the main rectangles. Reuse the massing from `tools/drawings/scenes/<scene>.js`, the earlier line drawings traced from the renders.

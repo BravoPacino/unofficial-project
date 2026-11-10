@@ -50,7 +50,7 @@ export function villaRow(k, { n = 7, ox = 0, oz = 0, ry = 0, ground = true, yard
     const p0 = x + 5.6, p1 = x + 9.2, py0 = 6.2, py1 = 14.6, pz = 0.4, pt = 0.25
     const pf = (a0, a1, b0, b1) => box((a0 + a1) / 2, (b0 + b1) / 2, (pz - 0.8) / 2, a1 - a0, b1 - b0, pz + 0.8)
     pf(p0, p0 + pt, py0, py1); pf(p1 - pt, p1, py0, py1); pf(p0, p1, py1 - pt, py1); pf(p0, p1, py0, py0 + pt)
-    for (let u = p0 + pt + 0.08; u < p1 - pt - 0.04; u += 0.15) box(u, (py0 + py1) / 2, pz - 0.3, 0.05, py1 - py0 - 2 * pt, 0.16, { soft: true })
+    for (let u = p0 + pt + 0.08; u < p1 - pt - 0.04; u += 0.15) box(u, (py0 + py1) / 2, pz - 0.3, 0.05, py1 - py0 - 2 * pt, 0.16, { soft: true, a: 0.4 })   // dark timber fins (a: ink tone)
     // 前院（泳池那边看得到）：门框两边一道矮石墙 + 墙前一条花槽
     if (yard) {
       box(x + 0.35, 0.5, 1.6, 0.7, 1.0, 0.3); box(x + 6.0, 0.5, 1.6, 6.4, 1.0, 0.3)

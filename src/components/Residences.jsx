@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import SplitText from './SplitText'
 import LiveInk from '../ink/LiveInk'
+import InkPlate from '../ink/InkPlate'
 
 const units = [
   {
@@ -21,7 +22,8 @@ const units = [
     beds: '4–6', baths: '5–6', parking: '4',
     size: '2,734 – 5,176 sqft',
     price: 'From RM 3.3M',
-    img: `${import.meta.env.BASE_URL}drawings/villas-ink.webp`
+    img: `${import.meta.env.BASE_URL}drawings/villas-ink.webp`,
+    plate: 'villas'
   }
 ]
 
@@ -102,7 +104,7 @@ export default function Residences() {
             <div className={u.live ? 'res-img res-live' : 'res-img'} style={{ aspectRatio: u.live ? undefined : '2 / 1', overflow: 'hidden', position: 'relative' }}>
               {u.live
                 ? <LiveInk still={u.img} alt={`${u.name}, drawing`} hud={false} />
-                : <img src={u.img} alt={`${u.name}, line drawing`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 1.2s cubic-bezier(.2,.7,.2,1)' }} />}
+                : <InkPlate scene={u.plate} still={u.img} alt={`${u.name}, drawing`} />}
               <div style={{
                 position: 'absolute', top: '1.2rem', right: '1.2rem',
                 zIndex: 10,
@@ -111,17 +113,11 @@ export default function Residences() {
                 color: '#efe8da', background: '#2a2622',
                 padding: '0.35rem 0.8rem'
               }}>{u.units}</div>
-              {!u.live && <div style={{
-                position: 'absolute', left: '1.2rem', bottom: '1rem',
-                zIndex: 10, pointerEvents: 'none',
-                fontSize: '0.55rem', letterSpacing: '0.12em',
-                color: 'rgba(42,38,34,0.55)'
-              }}>Line study · not to scale</div>}
             </div>
-            {u.live && <p className="res-note">
-              Shadows follow the sun over George Town now · drag across to move the day.
-              Which way the house faces is not known, so the light is kept in front; above 52° the sun is drawn at 52°. Not to scale.
-            </p>}
+            <p className="res-note">
+              {u.live ? 'Shadows follow the sun over George Town now · drag across to move the day. ' : 'Shadows follow the sun over George Town now. '}
+              Which way the {u.live ? 'house faces' : 'row faces'} is not known, so the light is kept in front; above 52° the sun is drawn at 52°. Not to scale.
+            </p>
 
             <div style={{
               padding: '2rem',
