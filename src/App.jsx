@@ -63,7 +63,7 @@ function App() {
       {loaded && <>
             <Navbar />
             <main>
-              <Hero />
+              <Hero push={!sections} />
               {sections ? <>
                 <Idea />
                 <Location />
@@ -72,7 +72,7 @@ function App() {
                 <Facilities />
                 <Enquire />
               </> : <>
-                <Location />
+                <Location scrub />
                 <Masterplan />
                 <Flight onFail={onFail} />
               </>}

@@ -171,7 +171,7 @@ export default function Masterplan() {
   ScrollTrigger.create({
     trigger: sectionRef.current,
     start: 'top -30%',
-    end: () => `+=${total * 130}`,
+    end: () => `+=${Math.min(total * 130, 2.2 * window.innerHeight)}`,   // at most about two screens: the plan is one stop on the way, not a chapter of its own
     pin: true,
     scrub: 0.5,
     onUpdate: (self) => {

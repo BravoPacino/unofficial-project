@@ -60,7 +60,9 @@ function readSun(date) {
   }
 }
 
-export default function Hero() {
+// push (the one take): once the louvres are open and the line behind them is read, the scroll carries on through the
+// window: it grows past the screen and the dark of the map beyond comes up, so the next chapter is reached through it.
+export default function Hero({ push = false }) {
   const winRef = useRef()
   const sunRef = useRef(null)
   const rippled = useRef(false)
@@ -101,7 +103,8 @@ export default function Hero() {
     const N = slats.length, pitch = geom.W / N
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const lift = new Float32Array(N), target = new Float32Array(N), shown = new Float32Array(N).fill(NaN)
-    let raf = 0, prev = 0, lastLit = -1
+    let raf = 0, prev = 0, lastLit = -1, shownPush = -1
+    const sill = stage.querySelector('.hero-sill'), veil = stage.querySelector('.hero-veil')
     let ripple0 = !reduce && !rippled.current ? performance.now() : -1
     rippled.current = true
 
@@ -109,8 +112,18 @@ export default function Hero() {
       raf = 0
       const dt = prev ? Math.min(0.1, (now - prev) / 1000) : 1 / 60
       prev = now
-      const held = Math.max(1, section.offsetHeight - stage.offsetHeight)
+      // the louvres and the line run over the first screen of scroll, as before; with push, the next 0.6 screen goes through
+      const held = push ? stage.offsetHeight : Math.max(1, section.offsetHeight - stage.offsetHeight)
       const q = reduce ? 0 : clamp01(window.scrollY / held)
+      if (push && !reduce) {
+        const k = clamp01((window.scrollY - 0.85 * stage.offsetHeight) / (0.6 * stage.offsetHeight)), e = k * k * (3 - 2 * k)
+        if (k !== shownPush) {
+          shownPush = k
+          win.style.transform = k ? `scale(${(1 + 2.4 * e * e).toFixed(4)})` : ''
+          sill.style.opacity = (1 - clamp01(k * 2.2)).toFixed(3)
+          veil.style.opacity = clamp01((k - 0.35) / 0.65).toFixed(3)
+        }
+      }
       const p = clamp01(q / OPEN_END)
 
       const words = behind.children
@@ -152,7 +165,7 @@ export default function Hero() {
     const kick = () => { if (!raf) raf = requestAnimationFrame(frame) }
     repaint.current = () => { lastLit = -1; kick() }
 
-    const onScroll = () => { if (window.scrollY < section.offsetHeight + 100) kick() }
+    const onScroll = () => { if (window.scrollY < section.offsetHeight + 100 || shownPush > 0) kick() }
     const onMove = e => {
       const r = win.getBoundingClientRect()
       const inside = e.clientY >= r.top && e.clientY <= r.bottom
@@ -178,7 +191,7 @@ export default function Hero() {
       win.removeEventListener('mousemove', onMove)
       win.removeEventListener('mouseleave', onLeave)
     }
-  }, [geom])
+  }, [geom, push])
 
   useEffect(() => {
     gsap.fromTo('.hero-light', { opacity: 0 }, { opacity: 1, duration: 1.6, ease: 'power2.out' })
@@ -220,7 +233,7 @@ export default function Hero() {
   )
 
   return (
-    <section className="hero">
+    <section className={push ? 'hero hero-push' : 'hero'}>
       <h1 className="sr-only">A Sanctuary Above All</h1>
 
       <div className="hero-stage">
@@ -260,6 +273,7 @@ export default function Hero() {
             <p>{COORD}</p>
           </div>
         </div>
+        {push && <div className="hero-veil" aria-hidden="true" />}
       </div>
 
       <style>{`
@@ -271,6 +285,10 @@ export default function Hero() {
           display: flex; flex-direction: column;
         }
         @media (prefers-reduced-motion: reduce) { .hero { height: auto; } }
+        .hero.hero-push { height: 250vh; height: 250svh; }
+        .hero-push .hero-stage { overflow: hidden; }
+        .hero-push .hero-window { transform-origin: 50% 45%; will-change: transform; }
+        .hero-veil { position: absolute; inset: 0; z-index: 5; background: #161512; opacity: 0; pointer-events: none; }
         .hero-window { position: relative; flex: 1; overflow: hidden; perspective: 1400px; }
         .hero-light { position: absolute; inset: 0; z-index: 0; background: #0b0a08; opacity: 0; }
         @media (prefers-reduced-motion: no-preference) {
