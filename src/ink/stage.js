@@ -12,7 +12,7 @@ import { frustum } from './project'
 export { projector, scaleAt, toPlane } from './project'
 
 const L_SOLID = 0, L_TONE = 1, L_LINE = 2
-const AMBIENT = 0.6                          // a white wall in full shadow prints at a little over a third ink
+const AMBIENT = 0.66                         // a white wall in full shadow: about a fifth ink, after the curve below
 const WEIGHT = { heavy: 1.7, main: 1, soft: 0.7, hair: 0.5 }   // line widths, CSS px
 
 // Tone → ink. The grain is two octaves of smooth noise, thresholded so that the share of inked pixels equals the
@@ -31,13 +31,14 @@ const STIPPLE_FS = /* glsl */`
     vec2 px = gl_FragCoord.xy / uDpr;
     float plain = step(.75, t.b / max(t.r, .001));
     float d = 1. - clamp(t.r, 0., 1.);
-    d += plain * .06 * smoothstep(.48, .86, vn(px / 44. + 3.1)) * (1. - d);
-    float c = clamp(d * .9, max(plain * .014, .0005), .985);
+    d += plain * .04 * smoothstep(.55, .9, vn(px / 44. + 3.1)) * (1. - d);
+    // light greys print as clean paper, mid greys as a light grain; only the deep shade gets dense
+    float c = clamp(.92 * pow(max(d - .16, 0.) / .84, 1.45), .0005, .985);
     float T = .5 + .092 * log(c / (1. - c));
     float g = .6 * vn(px / .78) + .4 * vn(px / .4 + 17.3);
     float ink = 1. - smoothstep(T - .035, T + .035, g);
     vec2 cell = floor(px / 11.); float r = mix(.4, 1., h12(cell + 91.));
-    float speck = step(h12(cell + 37.), .03 * plain) * (1. - smoothstep(r - .45, r + .35, length(px - (cell + .15 + .7 * h22(cell + 5.)) * 11.)));
+    float speck = step(h12(cell + 37.), .008 * plain) * (1. - smoothstep(r - .45, r + .35, length(px - (cell + .15 + .7 * h22(cell + 5.)) * 11.)));
     ink = max(max(ink, speck), smoothstep(.86, .9, d));
     gl_FragColor = vec4(mix(uPaper, uInk, ink), 1.);
     #include <colorspace_fragment>

@@ -39,7 +39,7 @@ export const SPOTS = [
 
 /** One house. ox: offset along the row. faint: a neighbour, drawn a tone lighter and without the rooms behind its glass. */
 function house(k, ox = 0, faint = false) {
-  const tone = (a) => (faint ? 1 - (1 - a) * 0.3 : a)
+  const tone = (a) => (faint ? 1 - (1 - a) * 0.15 : a)
   const weight = (l) => (!faint || !l || l === 'hair' ? l : 'soft')
   const box = (x, y, z, w, h, d, a = WHITE, o = {}) => k.box(x + ox, y, z, w, h, d, tone(a), { ...o, line: weight(o.line ?? 'main'), ...(faint ? { shade: false, flat: true } : {}) })
   const seg = (pairs, l = 'main') => k.seg(pairs.map(([p, q]) => [[p[0] + ox, p[1], p[2]], [q[0] + ox, q[1], q[2]]]), weight(l))
@@ -55,9 +55,9 @@ function house(k, ox = 0, faint = false) {
       // the room: back wall, side walls and floor, all clean; the slab or lintel above is its ceiling
       const lit = { ...clean, shade: false, cast: false, flat: true }        // a lit room: fixed tones, whatever the sun does
       box((x0 + x1) / 2, (y0 + y1) / 2, zg - room - 0.1, x1 - x0 + 0.4, y1 - y0 + 0.3, 0.2, 0.96, lit)
-      for (const [a, b] of [[x0 - 0.2, x0], [x1, x1 + 0.2]]) box((a + b) / 2, (y0 + y1) / 2, zg - room / 2, b - a, y1 - y0 + 0.3, room, 0.84, lit)
+      for (const [a, b] of [[x0 - 0.2, x0], [x1, x1 + 0.2]]) box((a + b) / 2, (y0 + y1) / 2, zg - room / 2, b - a, y1 - y0 + 0.3, room, 0.9, lit)
       box((x0 + x1) / 2, y0 - 0.05, zg - room / 2, x1 - x0, 0.1, room, WHITE, lit)
-      box((x0 + x1) / 2, y1 + 0.06, zg - room / 2, x1 - x0, 0.12, room, 0.66, lit)
+      box((x0 + x1) / 2, y1 + 0.06, zg - room / 2, x1 - x0, 0.12, room, 0.78, lit)
     } else pane(x0, y0, x1, y1, zg, a0, a1)
     // reveals: the sides, head and sill of the opening, between the wall face and the glass
     if (depth > 0.02) {
