@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import SplitText from './SplitText'
+import LiveInk from '../ink/LiveInk'
 
 const units = [
   {
@@ -10,7 +11,8 @@ const units = [
     beds: '6', baths: '7', parking: '5+1',
     size: '6,649 – 9,053 sqft',
     price: 'From RM 8.1M',
-    img: `${import.meta.env.BASE_URL}drawings/homes-ink.webp`
+    img: `${import.meta.env.BASE_URL}drawings/homes-ink.webp`,
+    live: true
   },
   {
     type: '1.5 & 2-Storey Condominium',
@@ -97,8 +99,10 @@ export default function Residences() {
             overflow: 'hidden',
             opacity: 0
           }}>
-            <div className="res-img" style={{ aspectRatio: '2 / 1', overflow: 'hidden', position: 'relative' }}>
-              <img src={u.img} alt={`${u.name}, line drawing`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 1.2s cubic-bezier(.2,.7,.2,1)' }} />
+            <div className={u.live ? 'res-img res-live' : 'res-img'} style={{ aspectRatio: u.live ? undefined : '2 / 1', overflow: 'hidden', position: 'relative' }}>
+              {u.live
+                ? <LiveInk still={u.img} alt={`${u.name}, drawing`} hud={false} />
+                : <img src={u.img} alt={`${u.name}, line drawing`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 1.2s cubic-bezier(.2,.7,.2,1)' }} />}
               <div style={{
                 position: 'absolute', top: '1.2rem', right: '1.2rem',
                 zIndex: 10,
@@ -107,13 +111,17 @@ export default function Residences() {
                 color: '#efe8da', background: '#2a2622',
                 padding: '0.35rem 0.8rem'
               }}>{u.units}</div>
-              <div style={{
+              {!u.live && <div style={{
                 position: 'absolute', left: '1.2rem', bottom: '1rem',
                 zIndex: 10, pointerEvents: 'none',
                 fontSize: '0.55rem', letterSpacing: '0.12em',
                 color: 'rgba(42,38,34,0.55)'
-              }}>Line study · not to scale</div>
+              }}>Line study · not to scale</div>}
             </div>
+            {u.live && <p className="res-note">
+              Shadows follow the sun over George Town now · drag across to move the day.
+              Which way the house faces is not known, so the light is kept in front; above 52° the sun is drawn at 52°. Not to scale.
+            </p>}
 
             <div style={{
               padding: '2rem',
@@ -163,7 +171,10 @@ export default function Residences() {
       </div>
 
       <style>{`
-        .res-card:hover .res-img img { transform: scale(1.04); }
+        .res-card:hover .res-img:not(.res-live) img { transform: scale(1.04); }
+        .res-live .ink { --ink-cursor: none; }
+        @media (hover: none), (pointer: coarse) { .res-live .ink { --ink-cursor: auto; } }
+        .res-note { margin: 0; padding: 0.7rem 1.2rem 0.8rem; font-size: 0.62rem; line-height: 1.6; letter-spacing: 0.02em; color: rgba(42,38,34,0.58); border-top: 1px solid rgba(42,38,34,0.1); }
         @media (max-width: 760px) {
           .res-section { padding: 6rem 1.5rem !important; }
           .res-header { flex-direction: column; align-items: flex-start !important; gap: 1.2rem; }

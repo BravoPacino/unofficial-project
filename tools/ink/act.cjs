@@ -1,4 +1,5 @@
-// 互动：悬停 → 拖动改时间 → 点热点 → 键盘；各拍一张，并读 HUD 文字
+// 互动（样板页 sample.html）：拖动改时间 → 松手回实时 → 键盘 → 点热点；各拍一张，并读 HUD 文字
+// node tools/ink/act.cjs [W H tag]
 const { chromium } = require('playwright')
 ;(async () => {
   const [W = '1440', H = '900', tag = 'd'] = process.argv.slice(2), mobile = +W < 700
@@ -13,9 +14,8 @@ const { chromium } = require('playwright')
   const out = { size: box, live: await hud() }
   if (!mobile) {
     await p.mouse.move(box.x + box.w * 0.72, box.y + box.h * 0.3); await p.waitForTimeout(500); await p.screenshot({ path: tag + '-hover.png' })
-    out.chip = await p.evaluate(() => document.querySelector('.ink-chip')?.innerText)
     await p.mouse.down(); await p.mouse.move(box.x + box.w * 0.95, box.y + box.h * 0.32, { steps: 10 }); await p.waitForTimeout(400)
-    out.dragged = await hud(); out.chipDrag = await p.evaluate(() => document.querySelector('.ink-chip')?.innerText); await p.screenshot({ path: tag + '-drag.png' })
+    out.dragged = await hud(); await p.screenshot({ path: tag + '-drag.png' })
     await p.mouse.up(); await p.waitForTimeout(3200); out.afterRelease = await hud()
     await p.focus('.ink'); for (let i = 0; i < 6; i++) await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(300); out.keys = await hud(); await p.screenshot({ path: tag + '-keys.png' })
     await p.evaluate(() => document.activeElement.blur()); await p.waitForTimeout(3000)

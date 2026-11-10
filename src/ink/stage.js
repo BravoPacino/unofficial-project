@@ -1,4 +1,4 @@
-// Ink stage: an orthographic elevation drawn the way an inked plate is —
+// Ink stage: a one-point perspective of a façade, drawn the way an inked plate is —
 //   1. tone   : the model lit by one sun with hard cast shadows, rendered to a grey target
 //   2. stipple: that grey turned into grains of ink on paper (density = darkness), solid black past a threshold
 //   3. line   : edges in three weights over the top, hidden where a face is in front
@@ -8,11 +8,8 @@ import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 
-/** metres → CSS pixels for a view drawn into a w × h box */
-export const projector = (view, w, h) => {
-  const hm = view.width * (h / w)
-  return (x, y) => [((x - (view.cx - view.width / 2)) / view.width) * w, ((view.cy + hm / 2 - y) / hm) * h]
-}
+import { frustum } from './project'
+export { projector, scaleAt, toPlane } from './project'
 
 const L_SOLID = 0, L_TONE = 1, L_LINE = 2
 const AMBIENT = 0.6                          // a white wall in full shadow prints at a little over a third ink
@@ -20,7 +17,7 @@ const WEIGHT = { heavy: 1.7, main: 1, soft: 0.7, hair: 0.5 }   // line widths, C
 
 // Tone → ink. The grain is two octaves of smooth noise, thresholded so that the share of inked pixels equals the
 // darkness (the logistic term is that noise's measured quantile curve). Blue ÷ red of the tone target marks plain
-// surfaces (walls: 1) from clean ones (glass: 0.5); plain ones get a little mottling and a few specks.
+// surfaces (walls: 1) from clean ones (glass, the rooms behind it: 0.5); plain ones get a little mottling and a few specks.
 const STIPPLE_FS = /* glsl */`
   precision highp float;
   uniform sampler2D tTone; uniform vec2 uRes; uniform float uDpr; uniform vec3 uInk; uniform vec3 uPaper;
@@ -54,39 +51,48 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) 
   renderer.shadowMap.type = THREE.PCFShadowMap
 
   const scene = new THREE.Scene()
-  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 400)
-  camera.position.set(view.cx, view.cy, 120); camera.lookAt(view.cx, view.cy, 0)
+  const NEAR = 1, FAR = 400
+  const camera = new THREE.PerspectiveCamera(30, 1, NEAR, FAR)
+  let shown = view
+  const aim = (v) => { camera.position.set(v.camX ?? v.cx, v.eye, v.dist); camera.rotation.set(0, 0, 0); camera.updateMatrixWorld() }
+  aim(view)
 
   scene.add(new THREE.AmbientLight(0xffffff, AMBIENT * Math.PI))
   const sun = new THREE.DirectionalLight(0xffffff, Math.PI)
   sun.castShadow = true
   sun.shadow.mapSize.set(4096, 4096)
-  Object.assign(sun.shadow.camera, { left: -13, right: 13, top: 13, bottom: -13, near: 60, far: 160 })
+  Object.assign(sun.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 60, far: 170 })
   sun.shadow.camera.updateProjectionMatrix()
   sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.012
   sun.target.position.set(view.cx, 5, -4)
   scene.add(sun, sun.target)
 
-  const grey = (a) => new THREE.MeshLambertMaterial({ color: new THREE.Color().setRGB(a, a, a, THREE.LinearSRGBColorSpace) })
+  // clean surfaces carry half the blue: the stipple pass reads that as "no mottling, no specks"
+  const grey = (a, clean) => new THREE.MeshLambertMaterial({ color: new THREE.Color().setRGB(a, a, clean ? a * 0.5 : a, THREE.LinearSRGBColorSpace) })
   const mats = new Map()
-  const mat = (a) => mats.get(a) || mats.set(a, grey(a)).get(a)
+  // flat: unlit, one grey on every face (a background house drawn a tone lighter)
+  const flats = new Map()
+  const flatMat = (a) => flats.get(a) || flats.set(a, new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(a, a, a * 0.5, THREE.LinearSRGBColorSpace) })).get(a)
+  const mat = (a, clean = false) => { const k = a + (clean ? 'c' : ''); return mats.get(k) || mats.set(k, grey(a, clean)).get(k) }
   const lines = { heavy: [], main: [], soft: [], hair: [] }
 
   const kit = {
     THREE,
-    /** A box: centre, size, grey value. line: weight of its edges ('heavy' | 'main' | 'soft'), or false for none. */
-    box(x, y, z, w, h, d, a = 0.97, { line = 'main', cast = true } = {}) {
+    /** A box: centre, size, grey value. line: weight of its edges ('heavy' | 'main' | 'soft' | 'hair'), or false for none.
+     *  clean: no mottling or specks (glass, rooms behind glass). shade: receives cast shadows. flat: unlit. */
+    box(x, y, z, w, h, d, a = 0.97, { line = 'main', cast = true, clean = false, shade = true, flat = false } = {}) {
       const g = new THREE.BoxGeometry(w, h, d).translate(x, y, z)
-      const m = new THREE.Mesh(g, mat(a)); m.castShadow = cast; m.receiveShadow = true; m.layers.set(L_SOLID); scene.add(m)
+      const m = new THREE.Mesh(g, flat ? flatMat(a) : mat(a, clean)); m.castShadow = cast; m.receiveShadow = shade; m.layers.set(L_SOLID); scene.add(m)
       if (line) lines[line].push(...new THREE.EdgesGeometry(g, 1).attributes.position.array)
       return m
     },
-    /** An upright rectangle facing the viewer whose grey runs from a0 (bottom) to a1 (top): glass. Receives shadow, stays clean. */
-    pane(x0, y0, x1, y1, z, a0 = 0.96, a1 = 0.8) {
+    /** An upright rectangle facing the viewer whose grey runs from a0 (bottom) to a1 (top). Clean.
+     *  shade false (the default) keeps it out of every cast shadow: glass reads as the whitest thing on the sheet. */
+    pane(x0, y0, x1, y1, z, a0 = 1, a1 = 1, { shade = false } = {}) {
       const g = new THREE.PlaneGeometry(x1 - x0, y1 - y0).translate((x0 + x1) / 2, (y0 + y1) / 2, z)
       const c = []; for (let i = 0; i < 4; i++) { const a = g.attributes.position.getY(i) > (y0 + y1) / 2 ? a1 : a0; c.push(a, a, a * 0.5) }
       g.setAttribute('color', new THREE.Float32BufferAttribute(c, 3))
-      const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true })); m.receiveShadow = true; m.layers.set(L_SOLID); scene.add(m)
+      const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true })); m.receiveShadow = shade; m.layers.set(L_SOLID); scene.add(m)
     },
     /** A veil that only darkens what is behind it, from k0 (bottom) to k1 (top), 1 = no change: the gloom under a soffit. */
     veil(x0, y0, x1, y1, z, k0 = 1, k1 = 0.7) {
@@ -120,13 +126,17 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) 
     }
   }
 
-  /** w × h in CSS px; width: how many metres across the box shows (defaults to the view's) */
-  function resize(w, h, width = view.width) {
+  /** w × h in CSS px; v: the view to show in that box (defaults to the one the stage was made with) */
+  function resize(w, h, v = view) {
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     renderer.setPixelRatio(dpr); renderer.setSize(w, h, false)
     target.setSize(Math.round(w * dpr), Math.round(h * dpr))
-    const hm = width * (h / w)
-    Object.assign(camera, { left: -width / 2, right: width / 2, top: hm / 2, bottom: -hm / 2 }); camera.updateProjectionMatrix()
+    shown = v; aim(v)
+    const f = frustum(v, w, h, NEAR)
+    // written straight into the matrix: updateProjectionMatrix() would replace this shifted frustum with a centred one
+    camera.projectionMatrix.makePerspective(f.left, f.right, f.top, f.bottom, NEAR, FAR)
+    camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert()
+    const width = v.width
     quadMat.uniforms.uRes.value.set(w * dpr, h * dpr); quadMat.uniforms.uDpr.value = dpr
     const k = Math.max(0.58, Math.min(1.15, w / width / 44))            // lines thin out when the drawing is small
     for (const [m, lw] of lineMats) { m.resolution.set(w * dpr, h * dpr); m.linewidth = lw * k * dpr }
@@ -134,7 +144,8 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) 
 
   /** dir: unit vector pointing from the scene towards the sun */
   function render(dir) {
-    sun.position.set(view.cx + dir[0] * 110, 5 + dir[1] * 110, -4 + dir[2] * 110)
+    sun.position.set(shown.cx + dir[0] * 110, 5 + dir[1] * 110, -4 + dir[2] * 110)
+    sun.target.position.set(shown.cx, 5, -4)
     sun.intensity = (Math.PI * (1 - AMBIENT)) / Math.max(dir[2], 0.25)       // a face square to the drawing, in the sun, prints at its own grey
     camera.layers.set(L_SOLID); camera.layers.enable(L_TONE)
     renderer.setRenderTarget(target); renderer.clear(); renderer.render(scene, camera)
