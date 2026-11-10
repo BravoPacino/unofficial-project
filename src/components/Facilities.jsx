@@ -9,7 +9,7 @@ gsap.registerPlugin(ScrollTrigger)
 
 const facilities = [
   { label: 'Resort-Style Pool', img: `${import.meta.env.BASE_URL}drawings/pool-gold.webp`, ar: 2, plate: 'pool' },
-  { label: 'Pedestrian Bridges', img: `${import.meta.env.BASE_URL}drawings/walkway-gold.webp`, ar: 2, plate: 'walkway' },
+  { label: 'Pedestrian Bridges', img: `${import.meta.env.BASE_URL}drawings/walkway-ink.webp`, ar: 2, plate: 'walkway' },
   { label: 'Lounge Decks', img: `${import.meta.env.BASE_URL}drawings/lounge-gold.webp`, ar: 2, plate: 'lounge' },
   { label: 'Floating Gym', img: `${import.meta.env.BASE_URL}drawings/gym-gold.webp`, ar: 2, plate: 'gym' },
   { label: 'Serene Courtyards', img: `${import.meta.env.BASE_URL}drawings/aerial-gold.webp`, ar: 0.5625, plate: 'aerial' },
