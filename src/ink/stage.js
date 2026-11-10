@@ -15,31 +15,28 @@ const L_SOLID = 0, L_TONE = 1, L_LINE = 2
 const AMBIENT = 0.66                         // a white wall in full shadow: about a fifth ink, after the curve below
 const WEIGHT = { heavy: 1.7, main: 1, soft: 0.7, hair: 0.5 }   // line widths, CSS px
 
-// Tone → ink. The grain is two octaves of smooth noise, thresholded so that the share of inked pixels equals the
-// darkness (the logistic term is that noise's measured quantile curve). Blue ÷ red of the tone target marks plain
-// surfaces (walls: 1) from clean ones (glass, the rooms behind it: 0.5); plain ones get a little mottling and a few specks.
+// Tone → ink, as an even stipple: one round dot per small cell, its area equal to the darkness, nudged a little off
+// the grid so it does not read as a screen. No random grain, no specks: random noise looks like dirt.
+// Light greys print as clean paper; past DEEP the shade is solid.
 const STIPPLE_FS = /* glsl */`
   precision highp float;
-  uniform sampler2D tTone; uniform vec2 uRes; uniform float uDpr; uniform vec3 uInk; uniform vec3 uPaper;
-  float h12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+  uniform sampler2D tTone; uniform vec2 uRes; uniform float uDpr; uniform float uCell; uniform vec3 uInk; uniform vec3 uPaper;
   vec2 h22(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * vec3(.1031, .1030, .0973)); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.xx + p3.yz) * p3.zy); }
-  float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
-    return mix(mix(h12(i), h12(i + vec2(1., 0.)), f.x), mix(h12(i + vec2(0., 1.)), h12(i + vec2(1., 1.)), f.x), f.y); }
+  const float DEEP = .9;
+  #define CELL uCell
   void main(){
     vec4 t = texture2D(tTone, gl_FragCoord.xy / uRes);
     if (t.a < .5) { gl_FragColor = vec4(0.); return; }
     vec2 px = gl_FragCoord.xy / uDpr;
-    float plain = step(.75, t.b / max(t.r, .001));
     float d = 1. - clamp(t.r, 0., 1.);
-    d += plain * .04 * smoothstep(.55, .9, vn(px / 44. + 3.1)) * (1. - d);
-    // light greys print as clean paper, mid greys as a light grain; only the deep shade gets dense
-    float c = clamp(.92 * pow(max(d - .16, 0.) / .84, 1.45), .0005, .985);
-    float T = .5 + .092 * log(c / (1. - c));
-    float g = .6 * vn(px / .78) + .4 * vn(px / .4 + 17.3);
-    float ink = 1. - smoothstep(T - .035, T + .035, g);
-    vec2 cell = floor(px / 11.); float r = mix(.4, 1., h12(cell + 91.));
-    float speck = step(h12(cell + 37.), .008 * plain) * (1. - smoothstep(r - .45, r + .35, length(px - (cell + .15 + .7 * h22(cell + 5.)) * 11.)));
-    ink = max(max(ink, speck), smoothstep(.86, .9, d));
+    float c = .9 * pow(max(d - .2, 0.) / .8, 1.3);                 // share of the paper the dots cover
+    vec2 q = px / CELL, cell = floor(q);
+    vec2 centre = .5 + (h22(cell) - .5) * .28;
+    float dist = length(fract(q) - centre) * CELL;
+    float r = CELL * sqrt(c / 3.14159);
+    float aa = .6 / uDpr;
+    float ink = (1. - smoothstep(r - aa, r + aa, dist)) * step(.002, c);
+    ink = max(ink, smoothstep(DEEP - .03, DEEP, d));
     gl_FragColor = vec4(mix(uPaper, uInk, ink), 1.);
     #include <colorspace_fragment>
   }`
@@ -112,7 +109,7 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) 
   const target = new THREE.WebGLRenderTarget(4, 4, { samples: 4, depthBuffer: true })
   const quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
   const quadMat = new THREE.ShaderMaterial({
-    uniforms: { tTone: { value: target.texture }, uRes: { value: new THREE.Vector2() }, uDpr: { value: 1 }, uInk: { value: new THREE.Color(ink) }, uPaper: { value: new THREE.Color(paper) } },
+    uniforms: { tTone: { value: target.texture }, uRes: { value: new THREE.Vector2() }, uDpr: { value: 1 }, uCell: { value: 2.6 }, uInk: { value: new THREE.Color(ink) }, uPaper: { value: new THREE.Color(paper) } },
     vertexShader: 'void main(){ gl_Position = vec4(position.xy, 0., 1.); }', fragmentShader: STIPPLE_FS, depthTest: false, depthWrite: false, transparent: true, blending: THREE.NoBlending,
   })
   const quadScene = new THREE.Scene(); quadScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), quadMat))
@@ -138,7 +135,7 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da' }) 
     camera.projectionMatrix.makePerspective(f.left, f.right, f.top, f.bottom, NEAR, FAR)
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert()
     const width = v.width
-    quadMat.uniforms.uRes.value.set(w * dpr, h * dpr); quadMat.uniforms.uDpr.value = dpr
+    quadMat.uniforms.uRes.value.set(w * dpr, h * dpr); quadMat.uniforms.uDpr.value = dpr; quadMat.uniforms.uCell.value = Math.max(1.8, Math.min(2.6, w / 300))   // dots in CSS px: finer on a small drawing
     const k = Math.max(0.58, Math.min(1.15, w / width / 44))            // lines thin out when the drawing is small
     for (const [m, lw] of lineMats) { m.resolution.set(w * dpr, h * dpr); m.linewidth = lw * k * dpr }
   }
