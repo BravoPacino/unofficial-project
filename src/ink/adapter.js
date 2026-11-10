@@ -36,19 +36,35 @@ export function treeGeometry(x, z, h, seed, { depth = 8, spread = 1 } = {}) {
   return mergeGeometries(parts)
 }
 
-export function adaptKit(ink) {
-  const seg = (pairs, soft = false) => ink.seg(pairs, typeof soft === 'string' ? soft : weight(soft))
+/**
+ * focus(x, y, z): is this point part of the one thing the drawing is about? Anything whose centre is not is a ghost:
+ * flat paper, faint lines, no shadow of its own, so the eye stays on the subject. No focus: everything is drawn in full.
+ */
+export function adaptKit(ink, focus = null) {
+  const inFocus = (x, y, z) => !focus || focus(x, y, z)
+  const centre = (g) => { g.computeBoundingBox(); const c = new THREE.Vector3(); g.boundingBox.getCenter(c); return c }
+  const GHOST = (a) => 1 - (1 - a) * 0.06
+  const seg = (pairs, soft = false) => {
+    const w = typeof soft === 'string' ? soft : weight(soft), keep = [], ghost = []
+    for (const pq of pairs) { const [p, q] = pq; (inFocus((p[0] + q[0]) / 2, (p[1] + q[1]) / 2, (p[2] + q[2]) / 2) ? keep : ghost).push(pq) }
+    if (keep.length) ink.seg(keep, focus && w === 'main' ? 'heavy' : w)
+    if (ghost.length) ink.seg(ghost, 'ghost')
+  }
+  const put = (g, a, { line, angle, flat, cast }) => {
+    const c = centre(g)
+    if (inFocus(c.x, c.y, c.z)) return ink.mesh(g, a, { line: focus && line === 'main' ? 'heavy' : line, angle, flat, cast })
+    return ink.mesh(g, GHOST(a), { line: line ? 'ghost' : false, angle, flat: true, cast: false, shade: false })
+  }
   const mesh = (g, { soft = false, angle = 25, a = WHITE, line, flat = false, cast = true } = {}) =>
-    ink.mesh(g, a, { line: line ?? weight(soft), angle, flat, cast })
+    put(g, a, { line: line ?? weight(soft), angle, flat, cast })
   const box = (x, y, z, w, h, d, { ry = 0, soft = false, edges = true, a = soft ? SECONDARY : WHITE, flat = false, cast = true } = {}) => {
     const g = new THREE.BoxGeometry(w, h, d).applyMatrix4(new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z))
-    return ink.mesh(g, a, { line: edges ? weight(soft) : false, angle: 1, flat, cast })
+    return put(g, a, { line: edges ? weight(soft) : false, angle: 1, flat, cast })
   }
-  const tree = (x, z, h = 7, ...[, seed = 1]) => ink.mesh(treeGeometry(x, z, h, seed), 0.04, { line: false, cast: true })
-  const bush = (x, z, r = 1, seed = 1) => {
-    // a low shrub: the same branching, short and wide
-    ink.mesh(treeGeometry(x, z, r * 1.5, seed + 0.5, { depth: 6, spread: 1.6 }), 0.04, { line: false })
-  }
+  // trees: in full only when they stand inside the subject; outside it they are left out (a grey stipple tree reads as dirt)
+  const plant = (g, x, y, z) => (inFocus(x, y, z) ? ink.mesh(g, 0.04, { line: false, cast: true }) : null)
+  const tree = (x, z, h = 7, ...[, seed = 1]) => plant(treeGeometry(x, z, h, seed), x, h * 0.6, z)
+  const bush = (x, z, r = 1, seed = 1) => plant(treeGeometry(x, z, r * 1.5, seed + 0.5, { depth: 6, spread: 1.6 }), x, r * 0.5, z)
   const smoothLoop = (pts, n = 8) => {
     const out = []
     for (let i = 0; i < pts.length; i++) {
