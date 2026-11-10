@@ -44,8 +44,8 @@ export const SPOTS = [
 
 /** One house. ox: offset along the row. faint: a neighbour, drawn a tone lighter and without the rooms behind its glass. */
 function house(k, ox = 0, faint = false) {
-  const tone = (a) => (faint ? 1 - (1 - a) * 0.15 : a)
-  const weight = (l) => (!faint || !l || l === 'hair' ? l : 'soft')
+  const tone = (a) => (faint ? 1 - (1 - a) * 0.06 : a)
+  const weight = (l) => (!l ? l : faint ? 'ghost' : l)                  // the neighbours: every line faint, so the eye stays on the middle house
   // everything below is in render units; these three turn it into metres and place it along the row
   const box = (x, y, z, w, h, d, a = WHITE, o = {}) => k.box(x * S + ox, y * S, z * S, w * S, h * S, d * S, tone(a), { ...o, line: weight(o.line ?? 'main'), ...(faint ? { shade: false, flat: true } : {}) })
   const seg = (pairs, l = 'main') => k.seg(pairs.map(([p, q]) => [[p[0] * S + ox, p[1] * S, p[2] * S], [q[0] * S + ox, q[1] * S, q[2] * S]]), weight(l))

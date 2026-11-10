@@ -13,7 +13,7 @@ export { projector, scaleAt, toPlane } from './project'
 
 const L_SOLID = 0, L_TONE = 1, L_LINE = 2
 const AMBIENT = 0.66                         // a white wall in full shadow: about a fifth ink, after the curve below
-const WEIGHT = { heavy: 1.7, main: 1, soft: 0.7, hair: 0.5 }   // line widths, CSS px
+const WEIGHT = { heavy: 1.7, main: 1, soft: 0.7, hair: 0.5, ghost: 0.6 }   // line widths, CSS px; ghost: the houses either side
 
 // Tone → ink, as an even stipple: one round dot per small cell, its area equal to the darkness, nudged a little off
 // the grid so it does not read as a screen. No random grain, no specks: random noise looks like dirt.
@@ -96,7 +96,7 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
   const flats = new Map()
   const flatMat = (a) => flats.get(a) || flats.set(a, new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(a, a, a * 0.5, THREE.LinearSRGBColorSpace) })).get(a)
   const mat = (a, clean = false) => { const k = a + (clean ? 'c' : ''); return mats.get(k) || mats.set(k, grey(a, clean)).get(k) }
-  const lines = { heavy: [], main: [], soft: [], hair: [] }
+  const lines = { heavy: [], main: [], soft: [], hair: [], ghost: [] }
 
   const kit = {
     THREE,
@@ -149,7 +149,7 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
   const lineMats = []
 
   function finish() {
-    for (const [name, opacity] of [['hair', 0.5], ['soft', 0.72], ['main', 1], ['heavy', 1]]) {
+    for (const [name, opacity] of [['ghost', 0.18], ['hair', 0.5], ['soft', 0.72], ['main', 1], ['heavy', 1]]) {
       if (!lines[name].length) continue
       const m = new LineMaterial({ color: new THREE.Color(ink), linewidth: WEIGHT[name], transparent: opacity < 1, opacity, depthWrite: false })
       const l = new LineSegments2(new LineSegmentsGeometry().setPositions(lines[name]), m); l.layers.set(L_LINE); scene.add(l); lineMats.push([m, WEIGHT[name]])

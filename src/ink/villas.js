@@ -33,8 +33,10 @@ export const SPOTS = [
 
 /** One villa module. m: its place along the row (0 = the middle one). faint: a neighbour, drawn a tone lighter. */
 function villa(k, m, faint) {
-  const tone = (a) => (faint ? 1 - (1 - a) * 0.15 : a)
-  const weight = (l) => (!faint || !l || l === 'hair' ? l : 'soft')
+  const tone = (a) => (faint ? 1 - (1 - a) * 0.06 : a)
+  // the neighbours: every line faint; the middle villa: every edge a step heavier, so the eye stays on it
+  const STEP = { soft: 'main', main: 'heavy', heavy: 'heavy', hair: 'hair' }
+  const weight = (l) => (!l ? l : faint ? 'ghost' : STEP[l])
   const ox = m * P - P / 2                       // the module's left edge, render units, with module 0 centred on x = 0
   const box = (x, y, z, w, h, d, a = WHITE, o = {}) => k.box((x + ox) * S, y * S, z * S, w * S, h * S, d * S, tone(a), { ...o, line: weight(o.line ?? 'main'), ...(faint ? { shade: false, flat: true } : {}) })
   const seg = (pairs, l = 'main') => k.seg(pairs.map(([p, q]) => [[(p[0] + ox) * S, p[1] * S, p[2] * S], [(q[0] + ox) * S, q[1] * S, q[2] * S]]), weight(l))

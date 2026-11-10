@@ -54,7 +54,7 @@ Kit calls a model uses:
 
 ## The two residence types are drawn alike
 
-Courtyard Homes (`src/ink/homes.js`) and Courtyard Villas (`src/ink/villas.js`) sit side by side in Residences, so they share one camera (square-on, eye 1.7 m, about 24 m back), the same tones, glass and tree rules, and both are draggable `InkDrawing`s (`model="homes" | "villas"`, registered in `src/ink/models.js`). Never give one of them a different viewpoint. A wall with windows is built around its openings (villas.js `wall()`), with a lit room behind each, or the glass ends up inside a solid box. Fallback stills: `node tools/ink/still.cjs <model> public/drawings/<model>-ink.jpg`.
+Courtyard Homes (`src/ink/homes.js`) and Courtyard Villas (`src/ink/villas.js`) sit side by side in Residences, so they share one camera (square-on, eye 1.7 m, about 24 m back), the same tones, glass and tree rules, and both are draggable `InkDrawing`s (`model="homes" | "villas"`, registered in `src/ink/models.js`). Never give one of them a different viewpoint. Focus on one house: neighbours are drawn only in `ghost` lines (0.6 px at 18 % opacity, no tone), and on Villas every edge of the middle house is one weight heavier. A wall with windows is built around its openings (villas.js `wall()`), with a lit room behind each, or the glass ends up inside a solid box. Fallback stills: `node tools/ink/still.cjs <model> public/drawings/<model>-ink.jpg`.
 
 ## The oblique scenes (done)
 
