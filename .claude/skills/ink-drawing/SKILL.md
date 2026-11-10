@@ -52,9 +52,13 @@ Kit calls a model uses:
 - **Sun**: `src/ink/light.js`. The time is real (sun over George Town now); the façade orientation is unknown, so the light is kept in front, morning from the left, afternoon from the right. Drawn altitude is clamped to 14–52° (or recesses go black at noon). Before sunrise and after dark, say so and keep first or last light. Say all of this in a note under the drawing.
 - **Interaction**: drag sideways or use the arrow keys to move the time; let go and it drifts back to live. On touch, a vertical swipe must still scroll. Orange squares open notes. No crosshair, coordinates or extension lines (Heron's layout language).
 
+## The two residence types are drawn alike
+
+Courtyard Homes (`src/ink/homes.js`) and Courtyard Villas (`src/ink/villas.js`) sit side by side in Residences, so they share one camera (square-on, eye 1.7 m, about 24 m back), the same tones, glass and tree rules, and both are draggable `InkDrawing`s (`model="homes" | "villas"`, registered in `src/ink/models.js`). Never give one of them a different viewpoint. A wall with windows is built around its openings (villas.js `wall()`), with a lit room behind each, or the glass ends up inside a solid box. Fallback stills: `node tools/ink/still.cjs <model> public/drawings/<model>-ink.jpg`.
+
 ## The oblique scenes (done)
 
-Villas, pool, walkway, lounge, gym, aerial and entrance are the line-drawing scenes in `tools/drawings/scenes/`, built into the ink stage unchanged through `src/ink/adapter.js` (same calls as `tools/drawings/kit.js`; a box or mesh may carry `{ a: grey }`, soft parts default to 0.8, trees are 3D bare branches that cast shadows). `src/ink/scenes.js` lists them with their shadow area. A view with `look: { eye, at, fov, aspect }` is an oblique camera; the light is turned to stay in front of it and swung to the side so shadows fall across what is seen.
+Pool, walkway, lounge, gym, aerial and entrance (and an oblique villas, unused in the site) are the line-drawing scenes in `tools/drawings/scenes/`, built into the ink stage unchanged through `src/ink/adapter.js` (same calls as `tools/drawings/kit.js`; a box or mesh may carry `{ a: grey }`, soft parts default to 0.8, trees are 3D bare branches that cast shadows). `src/ink/scenes.js` lists them with their shadow area. A view with `look: { eye, at, fov, aspect }` is an oblique camera; the light is turned to stay in front of it and swung to the side so shadows fall across what is seen.
 
 In the site they are `<InkPlate scene=… still=… />` (`src/ink/InkPlate.jsx`): looked at, not dragged, redrawn once a minute, all drawn through one shared WebGL context and copied into each card's own canvas. Test page: `sample.html?plates`.
 

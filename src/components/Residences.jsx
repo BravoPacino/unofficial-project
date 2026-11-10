@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import SplitText from './SplitText'
 import LiveInk from '../ink/LiveInk'
-import InkPlate from '../ink/InkPlate'
 
 const units = [
   {
@@ -12,8 +11,8 @@ const units = [
     beds: '6', baths: '7', parking: '5+1',
     size: '6,649 – 9,053 sqft',
     price: 'From RM 8.1M',
-    img: `${import.meta.env.BASE_URL}drawings/homes-ink.webp`,
-    live: true,
+    img: `${import.meta.env.BASE_URL}drawings/homes-ink.jpg`,
+    live: 'homes',
     facts: 'Upper floors 9.15 m wide on a plot 12.8 m wide (3,175 – 3,466 sqft of land). Built into a slope: the car porch is at street level, the garden a floor up. A lift in every home.'
   },
   {
@@ -23,8 +22,8 @@ const units = [
     beds: '4–6', baths: '5–6', parking: '4',
     size: '2,734 – 5,176 sqft',
     price: 'From RM 3.3M',
-    img: `${import.meta.env.BASE_URL}drawings/villas-ink.webp`,
-    plate: 'villas',
+    img: `${import.meta.env.BASE_URL}drawings/villas-ink.jpg`,
+    live: 'villas',
     facts: 'Each home 8.4 m wide. Two kinds: 2-storey with 6 bedrooms, and 1.5-storey with 4 bedrooms, each with its own courtyard.'
   }
 ]
@@ -103,10 +102,8 @@ export default function Residences() {
             overflow: 'hidden',
             opacity: 0
           }}>
-            <div className={u.live ? 'res-img res-live' : 'res-img'} style={{ aspectRatio: u.live ? undefined : '2 / 1', overflow: 'hidden', position: 'relative' }}>
-              {u.live
-                ? <LiveInk still={u.img} alt={`${u.name}, drawing`} hud={false} />
-                : <InkPlate scene={u.plate} still={u.img} alt={`${u.name}, drawing`} />}
+            <div className="res-img res-live" style={{ overflow: 'hidden', position: 'relative' }}>
+              <LiveInk model={u.live} still={u.img} alt={`${u.name}, drawing`} hud={false} />
               <div style={{
                 position: 'absolute', top: '1.2rem', right: '1.2rem',
                 zIndex: 10,
@@ -117,8 +114,9 @@ export default function Residences() {
               }}>{u.units}</div>
             </div>
             <p className="res-note">
-              {u.live ? 'Shadows follow the sun over George Town now · drag across to move the day. ' : 'Shadows follow the sun over George Town now. '}
-              Which way the {u.live ? 'house faces' : 'row faces'} is not known, so the light is kept in front; above 52° the sun is drawn at 52°.
+              Shadows follow the sun over George Town now · drag across to move the day.
+              Which way the {u.live === 'homes' ? 'house faces' : 'row faces'} is not known, so the light is kept in front; above 52° the sun is drawn at 52°.{' '}
+              {u.live === 'villas' && ' Drawn square-on from an oblique render, so its facade is more estimated than the Courtyard Homes drawing.'}{' '}
               Plan widths from the developer’s brochure; heights estimated from the render.
             </p>
 
@@ -171,7 +169,6 @@ export default function Residences() {
       </div>
 
       <style>{`
-        .res-card:hover .res-img:not(.res-live) img { transform: scale(1.04); }
         .res-live .ink { --ink-cursor: none; }
         @media (hover: none), (pointer: coarse) { .res-live .ink { --ink-cursor: auto; } }
         .res-note { margin: 0; padding: 0.7rem 1.2rem 0.8rem; font-size: 0.62rem; line-height: 1.6; letter-spacing: 0.02em; color: rgba(42,38,34,0.58); border-top: 1px solid rgba(42,38,34,0.1); }

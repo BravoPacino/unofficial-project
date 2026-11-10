@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { makeStage, projector, scaleAt } from './stage'
-import homes, { VIEW, CARD_VIEW, NARROW_VIEW, SPOTS, OUTLINE, GROUND_Z } from './homes'
+import { MODELS } from './models'
 import { drawTree } from './trees'
 import { dayOf, lightAt, clockOf } from './light'
 
 const INK = '#211e1a', PAPER = '#efe8da', ACC = '#bd7f1f', DISC = '#dba84a'
 const MIN = 60000
 // trees stand in the gaps between the houses, a little in front of the deck
-const TREES = [{ x: -6.1, z: GROUND_Z + 0.8, h: 8.2, seed: 7 }, { x: 7.0, z: GROUND_Z + 0.8, h: 7.8, seed: 21 }]
 // a smaller or squarer box shows less street, so the house is drawn larger
 const NARROW = 560
-const viewFor = (w, h) => (h / w > 0.6 ? NARROW_VIEW : w < 900 ? CARD_VIEW : VIEW)
+const viewOf = (M, w, h) => (h / w > 0.6 ? M.NARROW_VIEW : w < 900 ? M.CARD_VIEW : M.VIEW)
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
 
 /**
@@ -18,7 +17,10 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
  * hud: the time and sun readout · spots: squares that open notes · guides: dashed extension lines from the main edges
  * onFail: called if WebGL cannot start (the caller shows a still instead)
  */
-export default function InkDrawing({ hud = true, spots = true, guides = false, onFail }) {
+export default function InkDrawing({ model = 'homes', hud = true, spots = true, guides = false, onFail }) {
+  const M = MODELS[model]
+  const { SPOTS, OUTLINE, GROUND_Z } = M
+  const viewFor = (w, h) => viewOf(M, w, h)
   const boxRef = useRef(), glRef = useRef(), frontRef = useRef(), stageRef = useRef(null)
   const [size, setSize] = useState(null)
   const [now, setNow] = useState(() => Date.now())
@@ -39,21 +41,21 @@ export default function InkDrawing({ hud = true, spots = true, guides = false, o
   useEffect(() => {
     let stage
     try {
-      stage = makeStage(glRef.current, { view: VIEW, ink: INK, paper: PAPER })
+      stage = makeStage(glRef.current, { view: M.VIEW, ink: INK, paper: PAPER })
     } catch (err) {
       failRef.current?.(err)
       return undefined
     }
-    homes(stage.kit); stage.finish(); stageRef.current = stage
+    M.build(stage.kit); stage.finish(); stageRef.current = stage
     const ro = new ResizeObserver(([e]) => {
       const w = Math.round(e.contentRect.width), h = Math.round(e.contentRect.height)
       if (!w || !h) return
-      const view = viewFor(w, h)
+      const view = viewOf(M, w, h)
       stage.resize(w, h, view)
       const dpr = Math.min(window.devicePixelRatio || 1, 2), at = projector(view, w, h)
       const c = frontRef.current; c.width = w * dpr; c.height = h * dpr
       const ctx = c.getContext('2d'); ctx.scale(dpr, dpr)
-      for (const tr of TREES) {
+      for (const tr of M.TREES) {
         const [x, y] = at(tr.x, 0, tr.z)
         drawTree(ctx, x, y, scaleAt(view, w, tr.z), tr.h, tr.seed, INK)
       }
@@ -61,7 +63,7 @@ export default function InkDrawing({ hud = true, spots = true, guides = false, o
     })
     ro.observe(boxRef.current)
     return () => { ro.disconnect(); stage.dispose(); stageRef.current = null }
-  }, [])
+  }, [M])
 
   useEffect(() => { if (size && stageRef.current) stageRef.current.render(light.dir) }, [size, light])
 
@@ -107,12 +109,12 @@ export default function InkDrawing({ hud = true, spots = true, guides = false, o
     const y0 = P(0, 0, GROUND_Z)[1]
     // the disc crosses the sheet once a day, and stands higher the higher the sun
     const rDisc = 0.088 * w, dx = (0.14 + 0.72 * light.frac) * w, dy = y0 - rDisc * 0.35 - (Math.max(0, light.alt) / 90) * (y0 - rDisc * 1.5)
-    const frame = OUTLINE[0], [fx0, fyTop] = P(frame[0], frame[3]), [fx1] = P(frame[2], frame[3])
+    const frame = OUTLINE[0] || [0, 0, 0, 0], [fx0, fyTop] = P(frame[0], frame[3]), [fx1] = P(frame[2], frame[3])
     overlay = <>
       <div className="ink-disc" style={{ left: dx, top: dy, width: rDisc * 2, height: rDisc * 2, background: light.up ? DISC : 'transparent', borderColor: DISC }} />
       <svg className="ink-svg" viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
         <line x1={w * 0.02} x2={w * 0.98} y1={y0} y2={y0} stroke={INK} strokeWidth="2.25" />
-        {guides && <g className="ink-guide">
+        {guides && OUTLINE.length > 0 && <g className="ink-guide">
           {[fx0, fx1].map((x) => <line key={x} x1={x} x2={x} y1={fyTop - 6} y2={Math.max(14, fyTop - 0.09 * h)} />)}
           <line className="acc" x1={fx0} x2={fx1} y1={Math.max(14, fyTop - 0.07 * h)} y2={Math.max(14, fyTop - 0.07 * h)} />
         </g>}
@@ -140,7 +142,7 @@ export default function InkDrawing({ hud = true, spots = true, guides = false, o
 
   return (
     <div ref={boxRef} className="ink" tabIndex={0} role="group"
-      aria-label="Courtyard Homes in ink. Shadows follow the sun over George Town; drag sideways or use the left and right arrow keys to move the time of day."
+      aria-label={`${M.label} in ink. Shadows follow the sun over George Town; drag sideways or use the left and right arrow keys to move the time of day.`}
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
       onKeyDown={onKey} onBlur={() => { if (shift) release() }}>
       <canvas ref={glRef} className="ink-layer ink-gl" />
