@@ -42,7 +42,9 @@ export function treeGeometry(x, z, h, seed, { depth = 8, spread = 1 } = {}) {
  */
 export function adaptKit(ink, focus = null) {
   if (typeof location !== 'undefined' && /nofocus/.test(location.search)) focus = null   // test pages: every line in full, for overlays
-  const inFocus = (x, y, z) => !focus || focus(x, y, z)
+  let faint = false                                      // inside ghost(): everything drawn is a ghost, wherever it stands
+  const inFocus = (x, y, z) => !faint && (!focus || focus(x, y, z))
+  const ghost = (fn) => { const was = faint; faint = true; try { return fn() } finally { faint = was } }
   const centre = (g) => { g.computeBoundingBox(); const c = new THREE.Vector3(); g.boundingBox.getCenter(c); return c }
   const GHOST = (a) => 1 - (1 - a) * 0.06
   const seg = (pairs, soft = false) => {
@@ -95,6 +97,7 @@ export function adaptKit(ink, focus = null) {
     const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)))
     const g = new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: false, curveSegments: 1 })
     g.rotateX(-Math.PI / 2); g.translate(0, y0, 0)
+    if (faint) return put(g, a, { line: weight(soft), angle: 25 })
     return ink.mesh(g, a, { line: weight(soft), angle: 25 })
   }
   const plate = (x, y, z, w, h, ry = 0) => {
@@ -135,5 +138,5 @@ export function adaptKit(ink, focus = null) {
     p.box(0, 0.75, 0, 1.8, 0.8, 4.5, { a: 0.7 }); p.box(0, 1.45, 0.25, 1.6, 0.6, 2.3, { a: 0.45 })
     for (const [dx, dz] of [[-0.9, -1.4], [0.9, -1.4], [-0.9, 1.4], [0.9, 1.4]]) mesh(p.geo(new THREE.CylinderGeometry(0.34, 0.34, 0.22, 16).rotateZ(Math.PI / 2).translate(dx, 0.34, dz)), { angle: 40, a: 0.12 })
   }
-  return { THREE, box, mesh, seg, plate, tree, bush, smoothLoop, smoothLine, loop, line, slabShape, groundPlane, car, place, column, prismX, smooth, ribbon, P: {}, scene: null }
+  return { THREE, box, mesh, seg, plate, tree, bush, smoothLoop, smoothLine, loop, line, slabShape, groundPlane, car, place, column, prismX, smooth, ribbon, ghost, P: {}, scene: null }
 }

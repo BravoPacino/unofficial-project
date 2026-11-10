@@ -38,6 +38,8 @@ const inPoly = (poly, x, z) => { let c = false; for (let i = 0, j = poly.length 
 export const BRIDGE = { DECK, inPoly }
 
 export default function walkway(k) {
+  // the drawing is about the walkway: in ink (k.ghost) every house is drawn faint; the line kit has no ghost and draws them in full
+  const house = (o, t, side) => (k.ghost ? k.ghost(() => villa(k, o, t, side)) : villa(k, o, t, side))
   const { smoothLine, smoothLoop, line, loop, slabShape, seg, box, mesh, THREE } = k
   k.groundPlane(-DEPTH)
   const lens = (pts) => pts.slice(1).reduce((a, p, i) => a + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0)
@@ -83,7 +85,7 @@ export default function walkway(k) {
   for (let s = 0, i = 0; s < RL; s += PITCH, i++) {
     const a = along(offset(R, W1 - 2.0), s + 4.2); if (!a) break
     if (a[0][1] > 30) continue
-    villa(k, a[0], a[1], 1)
+    house(a[0], a[1], 1)
   }
 
   // ── left side: the planter by the road edge (rounded corner, a step in it), the island with a tree, the wide walk
@@ -105,7 +107,7 @@ export default function walkway(k) {
   slabShape([...offset(WL, -0.1), ...offset(WL, 1.3).reverse()], 0, 0.6, true, 0.5)
   for (let s = 6, i = 0; s < lens(WL); s += PITCH, i++) {
     const a = along(offset(WL, 3.8), s); if (!a) break
-    villa(k, a[0], a[1], -1)
+    house(a[0], a[1], -1)
   }
 
   // ── the bridge

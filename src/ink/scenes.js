@@ -17,7 +17,8 @@ export const SCENES = {
   villas: make(() => import('../../tools/drawings/scenes/villas.js'), { shadow: { x: 27, z: 4, r: 46 } }),
   // the pool itself: water, islands, fountains, the round spa
   pool: make(() => import('../../tools/drawings/scenes/pool.js'), { shadow: { x: 0, z: -12, r: 44 }, focus: inBox(-12.5, 13, -1, 3, -19.5, 25) }),
-  walkway: make(() => import('../../tools/drawings/scenes/walkway.js'), { shadow: { x: 2, z: 9, r: 22 } }),   // drawn in full, every element of the brochure image (the user's choice; no focus)
+  // every element of the brochure image is drawn, but only the walkway (bridge, walks, road, walls) in full: the houses are faint
+  walkway: make(() => import('../../tools/drawings/scenes/walkway.js'), { shadow: { x: 2, z: 9, r: 22 }, focus: () => true }),
   // the timber deck and its two nests
   lounge: make(() => import('../../tools/drawings/scenes/lounge.js'), { shadow: { x: 0, z: 2, r: 16 }, focus: inBox(-7.5, 6, -1, 3.2, -1.6, 5) }),
   // the four treadmills
