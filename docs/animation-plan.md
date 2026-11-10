@@ -164,3 +164,10 @@
 - 拍片：`node tools/ink/film-page.cjs <out.mp4> [W H] [秒] [fps]`（整页），`tools/ink/film.cjs`（只拍 sample 的一镜到底）。
 
 还没做：开场（M0 百叶是画出来的）；Homes / Villas 那站还不能拖太阳（原来的卡片可以）。
+
+### 7.1 一个世界（用户：「还是不够顺……中间有什么你直接画出来，那些车直接 remove」）
+
+- 墨点换场拿掉了。八个地方放进**同一个世界**（`src/ink/world.js`），沿 x 排开，都朝原来描图的方向（−z），所以一个太阳照全部；每两个地方之间 50 m 画一段**想象的花园步道**（铺地、矮绿篱、一排树、一排别墅），在画面上写明「The walk between these places is imagined. The real layout is in the masterplan.」
+- 镜头是**一条连续的路线**：所有站的关键位 + 每段步道两个关键位，向心 Catmull-Rom，速度按弧长做平滑（不会一段快一段慢地跳）。
+- 世界分块（`stage.chunk / drop`）：镜头附近大约三个地方 + 它们之间的步道，后面的立刻释放。手机整页峰值 50 MB（这次连几何体缓冲一起算）。
+- 车：`adapter.js` 的 `car()` 什么都不画，所有图都没有车；入口和人行桥的后备静图重出了。
