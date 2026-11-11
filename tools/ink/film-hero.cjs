@@ -14,9 +14,9 @@ const { chromium } = require('playwright'), { execFileSync } = require('child_pr
   await p.waitForTimeout(400)
   let f = 0
   const shot = () => p.screenshot({ path: path.join(dir, `${String(f++).padStart(4, '0')}.png`) })
-  // 1 · the plan drawing itself: every CSS animation paused and set to the frame's moment
+  // 1 · the plan drawing itself: every CSS animation (not the transitions) paused and set to the frame's moment
   for (let i = 0; i < 3.2 * F; i++) {
-    await p.evaluate((ms) => document.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms }), (i / F) * 1000)
+    await p.evaluate((ms) => document.getAnimations().forEach((a) => { if (a instanceof CSSAnimation) { a.pause(); a.currentTime = ms } }), (i / F) * 1000)
     await shot()
   }
   await p.evaluate(() => document.getAnimations().forEach((a) => { if (a.effect?.getTiming().iterations !== Infinity) a.finish() }))

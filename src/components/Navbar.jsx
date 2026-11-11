@@ -23,6 +23,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [hasStops, setHasStops] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     const onScroll = () => {
@@ -62,7 +63,9 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll)
     const late = setTimeout(onScroll, 1500)
-    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); clearTimeout(late) }
+    // colours change without a transition until the first frame is up: the bar starts as what it lies on, with no flash
+    const on = requestAnimationFrame(() => requestAnimationFrame(() => setReady(true)))
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); clearTimeout(late); cancelAnimationFrame(on) }
   }, [])
 
   useEffect(() => {
@@ -101,7 +104,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav ref={navRef} className={`site-nav${paper ? ' paper' : ''}${scrolled ? ' scrolled' : ''}`}>
+      <nav ref={navRef} className={`site-nav${paper ? ' paper' : ''}${scrolled ? ' scrolled' : ''}${ready ? '' : ' still'}`}>
         <a href="#" onClick={close} className="site-nav-logo">Unofficial<br />Project</a>
 
         <div className="site-nav-right">
@@ -185,6 +188,7 @@ export default function Navbar() {
           padding: 2.5rem 4rem;
           transition: padding 0.5s, background 0.5s, backdrop-filter 0.5s, color 0.5s;
         }
+        .site-nav.still, .site-nav.still * { transition: none !important; }
         .site-nav.scrolled { background: var(--nav-bg); backdrop-filter: blur(16px); padding: 1.2rem 4rem; }
         /* over the one take's drawing: its paper and ink, a hairline under the bar instead of a dark band */
         .site-nav.paper {

@@ -108,7 +108,7 @@ export const NOTES = [
 // the hero (docs/hero-plan.md): the plan seen from straight above (north up), drawn on paper; held while the homes begin
 // to rise out of it; then tipping down to the aerial and on to the gate. It replaces the first two keys of KEYS.
 // shift: on a wide screen the plan sits right of the title; tallShift: on a phone it sits under the title.
-const PLAN_TOP = { id: 'plan', eye: [0, 390, 3.5], at: [0, 0, 3], fov: 50, keep: 0.4, shift: [-0.36, 0.03], tallShift: [0, 0.06] }
+const PLAN_TOP = { id: 'plan', eye: [0, 390, 3.5], at: [0, 0, 3], fov: 50, keep: 0.5, shift: [-0.36, 0.03], tallShift: [0, 0.01] }
 export const HERO_KEYS = [PLAN_TOP, { ...PLAN_TOP, id: 'rise', dt: 0.5 }, { ...KEYS[1], id: 'aerial', dt: 1.0 }, ...KEYS.slice(2)]
 export const HERO_NOTES = NOTES.map((n, i) => (i === 0 ? { ...n, from: ['aerial', 0.2] } : n))
 
