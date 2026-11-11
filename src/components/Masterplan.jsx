@@ -262,6 +262,9 @@ export default function Masterplan() {
           background: rgba(200,168,107,0.06);
           transform: translateX(8px);
         }
+        /* an edge two zones share is drawn once; the copy in the other zone shows only while that zone is lit */
+        .shared { stroke-opacity: 0; }
+        .interactive-group.active .shared { stroke-opacity: 1; }
         .interactive-group.active line,
         .interactive-group.active path,
         .interactive-group.active rect,
@@ -430,9 +433,6 @@ export default function Masterplan() {
 <line x1="172" y1="140.5" x2="196" y2="140.5" stroke="#c8a86b"/>
 <line x1="195.5" y1="145" x2="195.5" y2="141" stroke="#c8a86b"/>
 <line x1="172.5" y1="145" x2="172.5" y2="141" stroke="#c8a86b"/>
-<line x1="172" y1="140.5" x2="196" y2="140.5" stroke="#c8a86b"/>
-<line x1="195.5" y1="145" x2="195.5" y2="141" stroke="#c8a86b"/>
-<line x1="172.5" y1="145" x2="172.5" y2="141" stroke="#c8a86b"/>
 <line x1="172" y1="249.5" x2="196" y2="249.5" stroke="#c8a86b"/>
 <line x1="195.5" y1="254" x2="195.5" y2="250" stroke="#c8a86b"/>
 <line x1="172.5" y1="254" x2="172.5" y2="250" stroke="#c8a86b"/>
@@ -498,9 +498,6 @@ export default function Masterplan() {
 <line x1="142" y1="585.5" x2="223" y2="585.5" stroke="#c8a86b"/>
 <line x1="142" y1="563.5" x2="223" y2="563.5" stroke="#c8a86b"/>
 <line x1="142" y1="542.5" x2="223" y2="542.5" stroke="#c8a86b"/>
-<line x1="172" y1="516.5" x2="196" y2="516.5" stroke="#c8a86b"/>
-<line x1="195.5" y1="521" x2="195.5" y2="517" stroke="#c8a86b"/>
-<line x1="172.5" y1="521" x2="172.5" y2="517" stroke="#c8a86b"/>
 <line x1="172" y1="516.5" x2="196" y2="516.5" stroke="#c8a86b"/>
 <line x1="195.5" y1="521" x2="195.5" y2="517" stroke="#c8a86b"/>
 <line x1="172.5" y1="521" x2="172.5" y2="517" stroke="#c8a86b"/>
@@ -620,9 +617,6 @@ export default function Masterplan() {
 <line x1="428" y1="141.5" x2="452" y2="141.5" stroke="#c8a86b"/>
 <line x1="451.5" y1="146" x2="451.5" y2="142" stroke="#c8a86b"/>
 <line x1="428.5" y1="146" x2="428.5" y2="142" stroke="#c8a86b"/>
-<line x1="428" y1="141.5" x2="452" y2="141.5" stroke="#c8a86b"/>
-<line x1="451.5" y1="146" x2="451.5" y2="142" stroke="#c8a86b"/>
-<line x1="428.5" y1="146" x2="428.5" y2="142" stroke="#c8a86b"/>
 <line x1="428" y1="227.5" x2="452" y2="227.5" stroke="#c8a86b"/>
 <line x1="451.5" y1="232" x2="451.5" y2="228" stroke="#c8a86b"/>
 <line x1="428.5" y1="232" x2="428.5" y2="228" stroke="#c8a86b"/>
@@ -665,9 +659,6 @@ export default function Masterplan() {
 <line x1="403" y1="585.5" x2="484" y2="585.5" stroke="#c8a86b"/>
 <line x1="403" y1="563.5" x2="484" y2="563.5" stroke="#c8a86b"/>
 <line x1="403" y1="542.5" x2="484" y2="542.5" stroke="#c8a86b"/>
-<line x1="428" y1="516.5" x2="452" y2="516.5" stroke="#c8a86b"/>
-<line x1="451.5" y1="521" x2="451.5" y2="517" stroke="#c8a86b"/>
-<line x1="428.5" y1="521" x2="428.5" y2="517" stroke="#c8a86b"/>
 <line x1="428" y1="516.5" x2="452" y2="516.5" stroke="#c8a86b"/>
 <line x1="451.5" y1="521" x2="451.5" y2="517" stroke="#c8a86b"/>
 <line x1="428.5" y1="521" x2="428.5" y2="517" stroke="#c8a86b"/>
@@ -743,10 +734,7 @@ export default function Masterplan() {
 <line x1="282" y1="238.5" x2="278" y2="238.5" stroke="#c8a86b"/>
 <line x1="278.5" y1="145" x2="278.5" y2="130" stroke="#c8a86b"/>
 <line x1="278.5" y1="167" x2="278.5" y2="152" stroke="#c8a86b"/>
-<line x1="278.5" y1="167" x2="278.5" y2="152" stroke="#c8a86b"/>
 <line x1="278.5" y1="188" x2="278.5" y2="173" stroke="#c8a86b"/>
-<line x1="278.5" y1="188" x2="278.5" y2="173" stroke="#c8a86b"/>
-<line x1="278.5" y1="210" x2="278.5" y2="195" stroke="#c8a86b"/>
 <line x1="278.5" y1="210" x2="278.5" y2="195" stroke="#c8a86b"/>
 <line x1="278.5" y1="253" x2="278.5" y2="238" stroke="#c8a86b"/>
 <line x1="278.5" y1="231" x2="278.5" y2="216" stroke="#c8a86b"/>
@@ -820,10 +808,7 @@ export default function Masterplan() {
 <line x1="282" y1="339.5" x2="278" y2="339.5" stroke="#c8a86b"/>
 <line x1="282" y1="361.5" x2="278" y2="361.5" stroke="#c8a86b"/>
 <line x1="278.5" y1="290" x2="278.5" y2="275" stroke="#c8a86b"/>
-<line x1="278.5" y1="290" x2="278.5" y2="275" stroke="#c8a86b"/>
 <line x1="278.5" y1="311" x2="278.5" y2="296" stroke="#c8a86b"/>
-<line x1="278.5" y1="311" x2="278.5" y2="296" stroke="#c8a86b"/>
-<line x1="278.5" y1="333" x2="278.5" y2="318" stroke="#c8a86b"/>
 <line x1="278.5" y1="333" x2="278.5" y2="318" stroke="#c8a86b"/>
 <line x1="278.5" y1="376" x2="278.5" y2="361" stroke="#c8a86b"/>
 <line x1="278.5" y1="354" x2="278.5" y2="339" stroke="#c8a86b"/>
@@ -857,10 +842,7 @@ export default function Masterplan() {
 <line x1="282" y1="447.5" x2="278" y2="447.5" stroke="#c8a86b"/>
 <line x1="282" y1="469.5" x2="278" y2="469.5" stroke="#c8a86b"/>
 <line x1="278.5" y1="398" x2="278.5" y2="383" stroke="#c8a86b"/>
-<line x1="278.5" y1="398" x2="278.5" y2="383" stroke="#c8a86b"/>
 <line x1="278.5" y1="419" x2="278.5" y2="404" stroke="#c8a86b"/>
-<line x1="278.5" y1="419" x2="278.5" y2="404" stroke="#c8a86b"/>
-<line x1="278.5" y1="441" x2="278.5" y2="426" stroke="#c8a86b"/>
 <line x1="278.5" y1="441" x2="278.5" y2="426" stroke="#c8a86b"/>
 <line x1="278.5" y1="484" x2="278.5" y2="469" stroke="#c8a86b"/>
 <line x1="278.5" y1="462" x2="278.5" y2="447" stroke="#c8a86b"/>
@@ -1082,7 +1064,6 @@ export default function Masterplan() {
 <line x1="122" y1="437.5" x2="125" y2="437.5" stroke="#c8a86b"/>
 <line x1="128.879" y1="438.485" x2="124.879" y2="437.485" stroke="#c8a86b"/>
 <line x1="126" y1="692.5" x2="373" y2="692.5" stroke="#c8a86b"/>
-<line x1="126" y1="692.5" x2="373" y2="692.5" stroke="#c8a86b"/>
 <line x1="373.5" y1="642" x2="373.5" y2="693" stroke="#c8a86b"/>
 <line x1="378.317" y1="628.613" x2="400.317" y2="646.613" stroke="#c8a86b"/>
 <line x1="378.317" y1="623.613" x2="400.317" y2="641.613" stroke="#c8a86b"/>
@@ -1233,14 +1214,13 @@ export default function Masterplan() {
   <line x1="252.5" y1="353" x2="252.5" y2="375" stroke="#c8a86b"/>
   <line x1="253" y1="374.5" x2="267" y2="374.5" stroke="#c8a86b"/>
   <line x1="266.5" y1="354" x2="266.5" y2="375" stroke="#c8a86b"/>
-  <line x1="253" y1="353.5" x2="267" y2="353.5" stroke="#c8a86b" opacity="0.2"/>
+  <line x1="253" y1="353.5" x2="267" y2="353.5" stroke="#c8a86b" class="shared"/>
 </g>
 
-<path d="M262.498 205.953C256.5 212 256.48 215.329 264.498 226.953" stroke="#c8a86b"/>
 <path d="M264.056 226.903C267.445 217.691 267.149 212.727 262 204.291" stroke="#c8a86b"/>
 
 <g id="aqua-lb2-d" class="interactive-group">
-  <path d="M257.494 172.925C250 180 251 198.5 262.494 205.925" stroke="#c8a86b"/>
+  <path d="M257.494 172.925C250 180 251 198.5 262.494 205.925" stroke="#c8a86b" class="shared"/>
   <path d="M257.494 172.925C269.494 184.337 270.415 191.589 262.494 205.925" stroke="#c8a86b"/>
 </g>
 
@@ -1279,11 +1259,7 @@ export default function Masterplan() {
 </g>
 
 <g id="aqua-lb2-r" class="interactive-group">
-<mask id="path-814-inside-1_0_1" fill="white">
-<path d="M264 561.5H234L249 537L264 561.5Z"/>
-</mask>
-<path d="M264 561.5V562.5H265.785L264.853 560.978L264 561.5ZM234 561.5L233.147 560.978L232.215 562.5H234V561.5ZM249 537L249.853 536.478L249 535.085L248.147 536.478L249 537ZM264 561.5V560.5H234V561.5V562.5H264V561.5ZM234 561.5L234.853 562.022L249.853 537.522L249 537L248.147 536.478L233.147 560.978L234 561.5ZM249 537L248.147 537.522L263.147 562.022L264 561.5L264.853 560.978L249.853 536.478L249 537Z" fill="#c8a86b" mask="url(#path-814-inside-1_0_1)"/>
-<path d="M264 561.5V562.5H265.785L264.853 560.978L264 561.5ZM234 561.5L233.147 560.978L232.215 562.5H234V561.5ZM249 537L249.853 536.478L249 535.085L248.147 536.478L249 537ZM264 561.5V560.5H234V561.5V562.5H264V561.5ZM234 561.5L234.853 562.022L249.853 537.522L249 537L248.147 536.478L233.147 560.978L234 561.5ZM249 537L248.147 537.522L263.147 562.022L264 561.5L264.853 560.978L249.853 536.478L249 537Z" fill="#c8a86b" mask="url(#path-814-inside-1_0_1)"/>
+<path d="M249 537L264 561.5H234Z" stroke="#c8a86b"/>
 </g>
 
 
