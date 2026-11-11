@@ -266,7 +266,7 @@ export default function Hero({ push = false }) {
               239 exclusive residences within Penang&rsquo;s most coveted enclave.
               Where nature&rsquo;s splendour meets timeless luxury.
             </p>
-            <a href="#residences" className="hero-cta magnetic">View Residences →</a>
+            {push ? <a href="#about" className="hero-cta magnetic">Walk the Estate →</a> : <a href="#residences" className="hero-cta magnetic">View Residences →</a>}
           </div>
           <div className="hero-sill-side">
             <p>George Town{sun ? ` · ${sun.time}` : ''}</p>

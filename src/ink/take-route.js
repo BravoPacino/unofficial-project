@@ -107,4 +107,4 @@ export const NOTES = [
 ]
 // where the form rises (screens from the key named), and the nav links' targets
 export const FORM = ['villas', 0.9]
-export const ANCHORS = { about: 'plan', facilities: 'lounge', residences: 'homes', enquire: 'end' }
+export const ANCHORS = { about: 'plan', facilities: 'gate', residences: 'homes', enquire: 'end' }

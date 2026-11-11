@@ -8,6 +8,7 @@ import { gate, drive, south } from './places'
 import { MODELS } from './models'
 import { makePath } from './path'
 import { KEYS, NOTES, FORM, ANCHORS, HOME, VILLA } from './take-route'
+import { STOPS } from './stops'
 import { U } from './site'
 import plan from '../data/sitePlan.js'
 import { EnquireForm } from '../components/Enquire'
@@ -178,6 +179,7 @@ export default function Take({ onFail }) {
   return (
     <section ref={sectionRef} className="take" style={{ height: `${(TOTAL + 1) * 100}svh` }}>
       {Object.entries(ANCHORS).map(([id, key]) => <div key={id} id={id} className="tk-anchor" style={{ top: `${timeOf([key]) * 100}svh` }} />)}
+      {STOPS.map((st) => <div key={st.key} id={`stop-${st.key}`} className="tk-anchor" style={{ top: `${timeOf([st.key]) * 100}svh` }} />)}
       <div ref={boxRef} className="tk-stage">
         <div ref={discRef} className="tk-disc" />
         <canvas ref={canvasRef} className="tk-canvas" role="img" aria-label="A drawing in ink of the estate as its masterplan lays it out, seen from one camera that moves as the page scrolls: from above, to the gate, along the walkway level and its bridges, down into the pool valley and through the floating gym, to a Courtyard Home and a Courtyard Villa." />
