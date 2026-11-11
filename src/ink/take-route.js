@@ -77,9 +77,9 @@ export const KEYS = [
   { eye: [-100, 22, hz + 6], at: [-40, 8, vz - 6], fov: 50, dt: 0.8 },
   { eye: [-40, 27, vz - 8], at: [0, 2, vz], fov: 50, dt: 0.8 },
   { eye: [2, 13, vz - 3], at: [-13.5, 5, vz], fov: 50, dt: 0.8 },
-  { ...square(VILLAS_VIEW, toVilla, { back: 2, dist: 17, width: 20 }), dt: 0.8 },
-  { ...square(VILLAS_VIEW, toVilla, { dist: 17, width: 20 }), id: 'villas', dt: 0.7 },
-  { ...square(VILLAS_VIEW, toVilla, { dist: 17, width: 20 }), id: 'end', dt: 1.6 },
+  { ...square(VILLAS_VIEW, toVilla, { back: 2, dist: 17, width: 30 }), dt: 0.8 },
+  { ...square(VILLAS_VIEW, toVilla, { dist: 17, width: 30 }), id: 'villas', dt: 0.7 },
+  { ...square(VILLAS_VIEW, toVilla, { dist: 17, width: 30 }), id: 'end', dt: 1.6 },
 ]
 
 // notes: from / to name keys (with an offset in screens); p: a world point
@@ -103,7 +103,7 @@ export const NOTES = [
   { from: ['homes', -0.5], to: ['homes', 1.4], p: toHome([-3.6, 11.4, 0.3]), dx: -70, dy: -40, title: 'Courtyard Homes', text: '4-storey zero-lot bungalows · 32 units · 6 bedrooms, 7 bathrooms · 5+1 parking · from RM 8.1M' },
   { from: ['homes', -0.3], to: ['homes', 1.4], p: toHome([3.2, 2.2, 1.2]), dx: 90, dy: -40, m: { dx: -20, dy: 150 }, title: 'On a slope', text: 'Upper floors 9.15 m wide on a plot 12.8 m wide. The car porch is at street level, the garden a floor up. A lift in every home.' },
   { from: ['villas', -0.5], to: ['end', 0.5], p: toVilla([-3, 10.9, 0.3]), dx: -70, dy: -40, m: { dx: -10, dy: -24 }, title: 'Courtyard Villas', text: '1.5 & 2-storey condominium · 207 units · 4–6 bedrooms · 4 parking · from RM 3.3M' },
-  { from: ['villas', -0.3], to: ['villas', 0.9], p: toVilla([2.6, 2, 1.2]), dx: 90, dy: -40, m: { dx: -20, dy: 150 }, title: 'Each 8.4 m wide', text: 'Two kinds: 2-storey with 6 bedrooms, and 1.5-storey with 4 bedrooms, each with its own courtyard.' },
+  { from: ['villas', -0.3], to: ['villas', 0.9], p: toVilla([2.6, 2, 1.2]), dx: 90, dy: -40, m: { dx: -20, dy: 60 }, title: 'Each 8.4 m wide', text: 'Two kinds: 2-storey with 6 bedrooms, and 1.5-storey with 4 bedrooms, each with its own courtyard.' },
 ]
 // the hero (docs/hero-plan.md): the plan seen from straight above (north up), drawn on paper; held while the homes begin
 // to rise out of it; then tipping down to the aerial and on to the gate. It replaces the first two keys of KEYS.
