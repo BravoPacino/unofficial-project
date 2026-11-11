@@ -30,8 +30,9 @@ const wantSections = () => /sections/.test(location.search) || matchMedia('(pref
 function App() {
   const [sections, setSections] = useState(wantSections)
   const onFail = useCallback(() => setSections(true), [])
-  const [loaded, setLoaded] = useState(false)
-  const [curtain, setCurtain] = useState(true)
+  // the one take opens on its own drawing (the plan drawing itself); the dark curtain is the sectioned page's opening
+  const [loaded, setLoaded] = useState(!sections)
+  const [curtain, setCurtain] = useState(sections)
   const onLift = useCallback(() => setLoaded(true), [])
   const onDone = useCallback(() => setCurtain(false), [])
 
@@ -63,8 +64,8 @@ function App() {
       {loaded && <>
             <Navbar />
             <main>
-              <Hero push={!sections} />
               {sections ? <>
+                <Hero />
                 <Idea />
                 <Location />
                 <Masterplan />
@@ -72,9 +73,10 @@ function App() {
                 <Facilities />
                 <Enquire />
               </> : <>
+                <Take onFail={onFail} />
                 <Location scrub />
                 <Masterplan />
-                <Take onFail={onFail} />
+                <Enquire />
               </>}
             </main>
             <Footer />

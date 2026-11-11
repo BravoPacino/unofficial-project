@@ -3,13 +3,11 @@ import { gsap } from 'gsap'
 import { lenisRef } from '../lib/lenis'
 import { STOPS } from '../ink/stops'
 
-// in the order the page reaches them (the one take visits the facilities first, the homes last)
-const navItems = [
-  { label: 'Location', href: '#location' },
-  { label: 'Masterplan', href: '#masterplan' },
-  { label: 'Facilities', href: '#facilities', group: 'facilities' },
-  { label: 'Residences', href: '#residences', group: 'residences' },
-]
+// in the order the page reaches them: the one take walks the facilities, then the homes, and the location and the
+// masterplan follow it; the sectioned page has its own order
+const LOCATION = { label: 'Location', href: '#location' }, MASTERPLAN = { label: 'Masterplan', href: '#masterplan' }
+const FACILITIES = { label: 'Facilities', href: '#facilities', group: 'facilities' }, RESIDENCES = { label: 'Residences', href: '#residences', group: 'residences' }
+const TAKE_ORDER = [FACILITIES, RESIDENCES, LOCATION, MASTERPLAN], SECTIONS_ORDER = [LOCATION, MASTERPLAN, RESIDENCES, FACILITIES]
 const ORDER = ['location', 'masterplan', 'facilities', 'residences', 'enquire']
 const topOf = (el) => el.getBoundingClientRect().top + window.scrollY
 
@@ -98,6 +96,7 @@ export default function Navbar() {
   }, [menuOpen])
 
   const close = () => setMenuOpen(false)
+  const navItems = hasStops ? TAKE_ORDER : SECTIONS_ORDER
   // closing a dropdown after a click: focus leaves it, so :focus-within lets it go
   const leave = (e) => e.currentTarget.blur()
   const subOf = (group) => (hasStops && group ? STOPS.filter((s) => s.group === group) : [])

@@ -7,13 +7,12 @@ import { greenWall, water, deck, cabanas, gym, ownDesigns, edges, facades } from
 import { gate, drive, south } from './places'
 import { MODELS } from './models'
 import { makePath } from './path'
-import { KEYS, NOTES, HERO_KEYS, HERO_NOTES, FORM, ANCHORS, HOME, VILLA } from './take-route'
+import { HERO_KEYS as ROUTE, HERO_NOTES as NOTE_LIST, FORM, ANCHORS, HOME, VILLA } from './take-route'
 import PlanDraw from './PlanDraw'
 import { COORD } from '../data/site'
 import { STOPS } from './stops'
 import { U, W as W_ } from './site'
 import plan from '../data/sitePlan.js'
-import { EnquireForm } from '../components/Enquire'
 
 // The one take on the masterplan (docs/world-plan.md): one camera through the estate as the plan lays it out, from the
 // plan seen from above to the gate, up onto the podium, along the east drive and its bridges, down the planted wall into
@@ -24,15 +23,12 @@ import { EnquireForm } from '../components/Enquire'
 const INK = '#211e1a', PAPER = '#efe8da', DISC = '#dba84a'
 const lerp = (a, b, t) => a + (b - a) * t
 const clamp01 = (v) => Math.max(0, Math.min(1, v))
-// the hero (docs/hero-plan.md): the take starts with the plan drawing itself on paper, then the homes rising out of it.
-// Only on the sample page (sample.html?hero) until the user has seen it.
-const HERO = /hero/.test(import.meta.env.VITE_SAMPLE || (typeof location === 'undefined' ? '' : location.search))
-const ROUTE = HERO ? HERO_KEYS : KEYS, NOTE_LIST = HERO ? HERO_NOTES : NOTES
+// the hero (docs/hero-plan.md): the take starts with the plan drawing itself on paper, then the homes rising out of it
 const PATH = makePath(ROUTE), TOTAL = PATH.TOTAL
 const timeOf = ([id, off = 0]) => PATH.TIME[ROUTE.findIndex((k) => k.id === id)] + off
 const smooth = (t) => t * t * (3 - 2 * t)
 // hero: how tall the estate stands at scroll s (screens). At least 4% while the drawing shows (fully flat faces flicker)
-const T_RISE = HERO ? timeOf(['rise']) : 0, T_AIR = HERO ? timeOf(['aerial']) : 0
+const T_RISE = timeOf(['rise']), T_AIR = timeOf(['aerial'])
 const heightAt = (s) => (s < T_RISE ? 0.04 + 0.26 * smooth(clamp01(s / T_RISE)) : 0.3 + 0.7 * smooth(clamp01((s - T_RISE) / (T_AIR - T_RISE))))
 
 // the pieces drawn in full, each over a box of the world (x0, x1, z0, z1): built while the camera is within R of it
@@ -118,13 +114,13 @@ export default function Take({ onFail }) {
       planRef.current.setAttribute('transform', `matrix(${a} ${b} ${c} ${d} ${q[0].x - 20 * a - 20 * c} ${q[0].y - 20 * b - 20 * d})`)
       planRef.current.style.strokeWidth = (1.1 / Math.hypot(a, b)).toFixed(3)
     }
-    let drawn = !HERO || matchMedia('(prefers-reduced-motion: reduce)').matches
+    let drawn = matchMedia('(prefers-reduced-motion: reduce)').matches
     if (!drawn) setTimeout(() => { drawn = true; dirty = true; kick() }, 2700)      // the plan has finished drawing itself
     const draw = (s) => {
       const v = PATH.cameraAt(s, W, H)
       const key = `${W}x${H}@${dpr}`
       if (sized !== key) { stage.resize(W, H, v, dpr); sized = key } else stage.frame(v, W, H)
-      if (HERO) {
+      {
         const show = clamp01((s - 0.03) / 0.15)
         canvas.style.opacity = show.toFixed(3)
         planRef.current.parentNode.style.opacity = (1 - clamp01((s - 0.06) / 0.2)).toFixed(3)
@@ -137,7 +133,7 @@ export default function Take({ onFail }) {
         if (!drawn && s < 0.03) return
       }
       buildEstate()
-      if (HERO) stage.stretch('estate', heightAt(s))
+      stage.stretch('estate', heightAt(s))
       need(v.look.eye)
       stage.render([0, 0, 0.8], { world: sun.dir })
       for (const x of notes) place(x, s)
@@ -164,7 +160,7 @@ export default function Take({ onFail }) {
     const sunDisc = (v) => {
       const [ex, ey, ez] = v.look.eye, d = sun.dir, q = stage.project(ex + d[0] * 300, ey + d[1] * 300, ez + d[2] * 300)
       const r = 0.05 * Math.max(W, H), el = discRef.current
-      el.style.opacity = sun.up && q.front && (!HERO || v.look.eye[1] < 200) ? 1 : 0
+      el.style.opacity = sun.up && q.front && v.look.eye[1] < 200 ? 1 : 0
       el.style.transform = `translate(${q.x - r}px, ${q.y - r}px)`; el.style.width = el.style.height = `${2 * r}px`
     }
     // too slow here (a frame takes over 45 ms while moving): offer the simpler page, do not switch behind anyone's back
@@ -214,18 +210,16 @@ export default function Take({ onFail }) {
       {STOPS.map((st) => <div key={st.key} id={`stop-${st.key}`} className="tk-anchor" style={{ top: `${timeOf([st.key]) * 100}svh` }} />)}
       <div ref={boxRef} className="tk-stage">
         <div ref={discRef} className="tk-disc" />
-        {HERO && <PlanDraw gRef={planRef} />}
+        <PlanDraw gRef={planRef} />
         <canvas ref={canvasRef} className="tk-canvas" role="img" aria-label="A drawing in ink of the estate as its masterplan lays it out, seen from one camera that moves as the page scrolls: from above, to the gate, along the walkway level and its bridges, down into the pool valley and through the floating gym, to a Courtyard Home and a Courtyard Villa." />
         <div ref={notesRef} className="tk-notes" />
-        {HERO && (
-          <div ref={heroRef} className="tk-hero">
+        <div ref={heroRef} className="tk-hero">
             <p className="tk-hero-meta">Unofficial concept <span>·</span> George Town, Penang</p>
             <h1 className="tk-hero-title">A <em>Sanctuary</em><br />Above All</h1>
             <p className="tk-hero-sub">239 exclusive residences within Penang&rsquo;s most coveted enclave. Where nature&rsquo;s splendour meets timeless luxury.</p>
             <p className="tk-hero-coord">{COORD}</p>
             <p className="tk-hero-hint">Scroll to walk in <span aria-hidden="true">↓</span></p>
-          </div>
-        )}
+        </div>
         <div ref={mapBoxRef} className="tk-mapbox"><button type="button" className={mapOpen ? 'tk-map' : 'tk-map tk-map-closed'} onClick={() => setMapOpen((o) => !o)} aria-label={mapOpen ? 'Hide the little map' : 'Show the little map'}>
           <svg viewBox="20 20 480 750" aria-hidden="true">
             <path d={mapLines} />
@@ -233,7 +227,7 @@ export default function Take({ onFail }) {
             <g ref={camRef}><path className="tk-cone" d="M0 0 L42 -16 L42 16 Z" /><circle r="7" /></g>
           </svg>
         </button></div>
-        <div ref={formRef} className="tk-form"><EnquireForm compact /></div>
+        <a ref={formRef} className="tk-form" href="#enquire">Register Interest <span aria-hidden="true">→</span></a>
         <p className="tk-made">Laid out from the developer’s masterplan. Heights, and which home or bridge each drawing shows, are our reading; ○ marks a facility with no published image, drawn in our own hand.</p>
         <p ref={clockRef} className="tk-clock" />
         <a ref={simpleRef} className="tk-simple" href="?sections"><span className="tk-simple-slow">This looks slow here: </span>simpler page →</a>
@@ -277,7 +271,10 @@ export default function Take({ onFail }) {
         .tk-map circle { fill: ${DISC}; stroke: ${INK}; stroke-width: 3; }
         .tk-map .tk-cone { fill: rgba(219,168,74,.45); stroke: none; }
         .tk-map-closed { width: 34px; }
-        .tk-form { position: absolute; right: max(5vw, 24px); top: 50%; transform: translateY(-46%); width: min(420px, calc(100% - 32px)); padding: 1.6rem 1.6rem 0.4rem; text-align: center; color: #2a2622; background: rgba(239,232,218,.94); box-shadow: 0 0 0 1px rgba(33,30,26,.14); opacity: 0; pointer-events: none; }
+        .tk-form { position: absolute; right: max(5vw, 24px); top: 50%; padding: 1rem 1.6rem; font: 400 11px/1 'Jost', sans-serif; letter-spacing: .22em; text-transform: uppercase; color: ${PAPER}; background: ${INK}; text-decoration: none; opacity: 0; pointer-events: none; }
+        .tk-form:hover { background: #3d3830; }
+        /* the paper ends on the dark page below with a thin shadow, as a sheet lies on a desk */
+        .take::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 18px; transform: translateY(100%); background: linear-gradient(rgba(0,0,0,.35), transparent); pointer-events: none; z-index: 2; }
         .tk-made { position: absolute; left: 16px; bottom: 30px; margin: 0; max-width: min(560px, calc(100% - 200px)); font: 300 11px/1.45 'Jost', sans-serif; color: rgba(33,30,26,.62); }
         .tk-clock { position: absolute; left: 16px; bottom: 10px; margin: 0; font: 400 11px/1.4 'Geist Mono', monospace; letter-spacing: .04em; color: rgba(33,30,26,.6); }
         .tk-simple { position: absolute; right: 16px; bottom: 12px; font: 400 11px/1.4 'Geist Mono', monospace; letter-spacing: .04em; color: rgba(33,30,26,.6); text-decoration: none; }
@@ -286,14 +283,14 @@ export default function Take({ onFail }) {
         .tk-simple.slow .tk-simple-slow { display: inline; }
         @media (max-width: 700px) {
           .tk-map { top: auto; bottom: 84px; width: 80px; }
-          .tk-hero { top: 88px; bottom: 112px; left: 16px; right: 16px; width: auto; transform: none; display: flex; flex-direction: column; }
+          .tk-hero { top: 104px; bottom: 112px; left: 16px; right: 16px; width: auto; transform: none; display: flex; flex-direction: column; }
           .tk-hero-title { font-size: 2.6rem; margin: .3em 0 0; }
           .tk-hero-sub { margin-top: auto !important; font-size: 13px; }
           .tk-hero-coord { margin-top: .6em !important; }
           .tk-hero-hint { margin-top: .9em !important; }
           .tk-made { bottom: 30px; max-width: calc(100% - 32px); font-size: 10px; }
           .tk-clock { display: none; }
-          .tk-form { top: auto; right: 16px; bottom: 36px; transform: none; padding: 1.1rem 1.1rem 0.2rem; }
+          .tk-form { top: 92px; right: 16px; }
         }
       `}</style>
     </section>

@@ -93,6 +93,7 @@ Start the dev server first: `npx vite --port 4390`. The test page is `/unofficia
 The site's main page is one camera through the estate laid out from the masterplan (`src/ink/Take.jsx`; route, stops and notes in `src/ink/take-route.js`; site data in `src/ink/site.js`; plan in `docs/world-plan.md`). Rules learned building it:
 
 - One world, built in chunks (`stage.chunk / drop`): pieces within R of the camera (80 m on a phone, 110 m elsewhere) are drawn in full, everything else is massing. Keep the phone peak under 120 MB (`tools/ink/gpu-budget.cjs 390 844`).
+- The page opens on the plan drawing itself (`PlanDraw`, an SVG laid on the estate seen from straight above by an affine fit through three plan corners), then the estate rising out of it (`stage.stretch`, never below 4%: fully flat faces flicker). Build nothing until the drawing has finished or the reader scrolls: building takes the main thread and stops CSS animations.
 - Place things where the masterplan puts them; anything without a published image is drawn in our own hand and marked ○.
 - Light is fixed in the world per stop (`stage.worldLight(dir, dwellLook)`); a camera-relative light makes shadows slide as the camera moves. Shadow maps recompute only when the light moves (`renderer.shadowMap.autoUpdate = false`).
 - On the way through, scenes are drawn in full (no ghosting) but keep only the trees inside their subject (`adaptKit(..., { trees })`): a 3D tree in front of a moving camera is a black trunk across the picture.

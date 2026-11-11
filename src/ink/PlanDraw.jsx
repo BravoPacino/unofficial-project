@@ -5,7 +5,7 @@ import plan from '../data/sitePlan.js'
 // 516 × 789, north up) is a path that draws from end to end, the long lines first (the site's edge and the drives), then the
 // plots row by row from north to south, then the pool valley and its facilities. The paths sit in a <g> whose transform the
 // owner sets (gRef), so the plan can lie exactly on the three-dimensional estate seen from above.
-// still: drawn at once (reduced motion; or a page with no scroll-driven estate behind it).
+// still: drawn at once. fit: the plan scaled into the svg's own box (no gRef transform needed), as on the sectioned page.
 const rnd = (i) => { const x = Math.sin(i * 12.9898) * 43758.5453; return x - Math.floor(x) }
 
 function pieces() {
@@ -29,10 +29,10 @@ function pieces() {
   return out
 }
 
-export default function PlanDraw({ gRef, tone = 'paper', still = false, className = '' }) {
+export default function PlanDraw({ gRef, tone = 'paper', still = false, fit = false, className = '' }) {
   const all = useMemo(() => pieces(), [])
   return (
-    <svg className={`plan-draw plan-${tone}${still ? ' plan-still' : ''} ${className}`} aria-hidden="true">
+    <svg className={`plan-draw plan-${tone}${still ? ' plan-still' : ''} ${className}`} aria-hidden="true" {...(fit ? { viewBox: '20 20 480 750', preserveAspectRatio: 'xMidYMid meet' } : {})}>
       <g ref={gRef}>
         {all.map((p) => (
           <path key={p.i} d={p.d} pathLength="1" className={p.g ? 'pg' : undefined} style={{ animationDelay: `${p.t.toFixed(2)}s`, animationDuration: `${p.dur}s` }} />
@@ -45,6 +45,7 @@ export default function PlanDraw({ gRef, tone = 'paper', still = false, classNam
         .plan-draw path.pg { stroke: var(--plan-ink-2); }
         .plan-paper { --plan-ink: rgba(33,30,26,.82); --plan-ink-2: rgba(33,30,26,.55); }
         .plan-dark { --plan-ink: rgba(200,168,107,.75); --plan-ink-2: rgba(200,168,107,.5); }
+        .plan-draw[viewBox] path { stroke-width: 1.3; }
         .plan-still path { animation: none; stroke-dashoffset: 0; }
         @keyframes plan-draw { to { stroke-dashoffset: 0; } }
         @media (prefers-reduced-motion: reduce) { .plan-draw path { animation: none; stroke-dashoffset: 0; } }
