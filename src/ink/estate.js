@@ -11,7 +11,8 @@ const WHITE = 0.97, SLAB = 0.93, ROAD = 0.86
  * kit: an ink stage kit. inside(x, z): only what stands there is built (a chunk of the world); default everything.
  * faint: the plots drawn as ghosts (the far view), not as white masses with full edges.
  */
-export function estate(kit, { inside = () => true, faint = false } = {}) {
+// trim: metres of the two inner rows' depth, from their pool-side face, left out because the valley draws them (valley.js)
+export function estate(kit, { inside = () => true, faint = false, trim = 0 } = {}) {
   const line = faint ? 'ghost' : 'soft'
   const slab = (x0, x1, z0, z1, y, t = 0.3, a = SLAB, o = {}) => {
     const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2
@@ -41,7 +42,14 @@ export function estate(kit, { inside = () => true, faint = false } = {}) {
       mass(p.x0 + 0.3, p.x1 - 0.3, p.z0 + 0.3, p.z1 - 0.3, LEVEL.G, LEVEL.G + 12.6)
       continue
     }
-    const pool = p.face === 'east' ? 1 : -1, d = p.x1 - p.x0
+    const pool = p.face === 'east' ? 1 : -1, inner = p.row === 'westRow' || p.row === 'eastRow'
+    if (inner && trim) {                                              // only the drive side of the row: the valley draws the rest
+      const x0 = pool > 0 ? p.x0 + 0.2 : p.x0 + trim, x1 = pool > 0 ? p.x1 - trim : p.x1 - 0.2
+      mass(x0, x1, p.z0 + 0.2, p.z1 - 0.2, LEVEL.B2, LEVEL.L2)
+      mass(x0, x1, p.z0 + 0.6, p.z1 - 0.6, LEVEL.L2, ROOF)
+      continue
+    }
+    const d = p.x1 - p.x0
     mass(p.x0 + 0.2, p.x1 - 0.2, p.z0 + 0.2, p.z1 - 0.2, LEVEL.B2, LEVEL.L2)
     // the top storey stands back from the side facing the pool (or the garden), leaving a terrace
     const tx0 = pool > 0 ? p.x0 + 0.2 : p.x0 + d * 0.22, tx1 = pool > 0 ? p.x1 - d * 0.22 : p.x1 - 0.2

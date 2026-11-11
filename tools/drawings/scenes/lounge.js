@@ -18,7 +18,7 @@ function clipLine(poly, [ax, az], [bx, bz], step = 0.08) {
 }
 
 /** 藤编躺窝：碗形（外壁 + 一圈厚边 + 里面），外壁上画编织纹；开口往 +z 斜 tilt，绕 y 转 ry */
-function nest(k, x, z, ry, tilt, eye, s = 1) {
+export function nest(k, x, z, ry, tilt, eye, s = 1) {
   const { THREE } = k
   const M = new THREE.Matrix4().makeTranslation(x, 0.15, z).multiply(new THREE.Matrix4().makeRotationY(ry)).multiply(new THREE.Matrix4().makeRotationX(tilt)).multiply(new THREE.Matrix4().makeScale(s, s, s))
   const prof = [[0.001, 0.0], [0.45, 0.03], [0.8, 0.14], [1.02, 0.32], [1.1, 0.52], [1.07, 0.7], [0.98, 0.84], [0.9, 0.9], [0.83, 0.86], [0.84, 0.72], [0.76, 0.58], [0.5, 0.5], [0.001, 0.48]]
@@ -47,7 +47,7 @@ function nest(k, x, z, ry, tilt, eye, s = 1) {
 }
 
 /** 一丛叶子：每片叶子是一条弯的叶脉 + 两边弧线（软线，不挡线） */
-function plant(k, x, z, h, n, L, seed) {
+export function plant(k, x, z, h, n, L, seed) {
   const out = [], rnd = (i) => { const v = Math.sin(i * 91.7 + seed * 13.1) * 43758.5; return v - Math.floor(v) }
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 + rnd(i) * 0.8, len = L * (0.7 + rnd(i + 9) * 0.5), up = h * (0.6 + rnd(i + 3) * 0.6), W = len * 0.16

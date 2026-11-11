@@ -4,12 +4,14 @@
 import { villaRow } from './villas.js'
 
 /** 玻璃亭子：局部坐标正面在 z = 0 朝 +z，进深到 z = -D；放到 (ox, oz) 转 ry */
-export function pavilion(k, { ox = 0, oz = 0, ry = 0, W = 7.2, D = 10, H = 5, eye } = {}) {
+// back: false glazes the back too (the floating gym in the one take is glass all round: the camera passes through it)
+export function pavilion(k, { ox = 0, oz = 0, ry = 0, W = 7.2, D = 10, H = 5, eye, back = true } = {}) {
   const p = k.place(ox, oz, ry), { box, seg, T } = p
   const X0 = -W / 2, X1 = W / 2, TR = 2.5
   box(0, 0.12, -D / 2, W + 0.6, 0.24, D + 0.6)                     // 地台
   box(0, H + 0.3, -D / 2, W + 1.4, 0.6, D + 1.4)                    // 屋顶板
-  box(0, H / 2, -D + 0.15, W, H, 0.3)                               // 后墙
+  if (back) box(0, H / 2, -D + 0.15, W, H, 0.3)                     // 后墙
+  else { const m = []; for (let u = X0; u <= X1 + 0.01; u += W / 6) m.push([[u, 0.24, -D], [u, H, -D]]); seg(m); box(0, TR, -D, W, 0.16, 0.16) }
   // 正面：细竖梃 + 横档
   const front = []
   for (let u = X0; u <= X1 + 0.01; u += W / 6) front.push([[u, 0.24, 0], [u, H, 0]])

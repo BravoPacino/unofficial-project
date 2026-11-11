@@ -38,3 +38,16 @@ export function lightAt(t, day = dayOf(t)) {
 }
 
 export const clockOf = (t) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kuala_Lumpur', hour: '2-digit', minute: '2-digit' }).format(new Date(t))
+
+/**
+ * The sun in the one take's world, which has a north (site.js: x east, y up, z south): its real bearing over George
+ * Town at t, its height held between LOW and HIGH as in every drawing. With the sun down, the world keeps the day's
+ * first light (before sunrise) or last light (after sunset), from where the sun rose or set.
+ * Returns { dir: unit vector towards the sun, up, alt (drawn), az (real, degrees from north, clockwise) }.
+ */
+export function sunWorld(t, day = dayOf(t)) {
+  const now = sunPosition(new Date(t), SITE.lat, SITE.lon), up = now.alt > 0
+  const az = up ? now.az : sunPosition(new Date(t < day.noon ? day.rise + 20 * MIN : day.set - 20 * MIN), SITE.lat, SITE.lon).az
+  const a = clamp(up ? now.alt : LOW, LOW, HIGH) * RAD, b = az * RAD
+  return { dir: [Math.sin(b) * Math.cos(a), Math.sin(a), -Math.cos(b) * Math.cos(a)], up, alt: a / RAD, az }
+}

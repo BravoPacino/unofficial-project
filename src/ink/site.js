@@ -122,3 +122,28 @@ export function bandAt(x, z) {
   return 'street'
 }
 export const GROUND = { valley: LEVEL.B2, westDrive: LEVEL.L2, eastDrive: LEVEL.L2, north: LEVEL.L2, south: LEVEL.G, street: LEVEL.G, westRow: ROOF, eastRow: ROOF, eastOuter: ROOF, homes: LEVEL.G }
+
+/** The separate pieces of a facility's outline (segments that touch belong together), each with its extent in metres:
+ *  e.g. the four cabanas of AQUA J, or the changing room and sauna side by side. */
+export function parts(id) {
+  const f = FACILITY[id]; if (!f) return []
+  const segs = f.lines.map((pl) => pl.slice()), groups = []
+  const near = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.6
+  for (const s of segs) {
+    const hit = groups.filter((g) => g.some((t) => t.some((p) => s.some((q) => near(p, q)))))
+    const merged = hit.flat(); merged.push(s)
+    for (const h of hit) groups.splice(groups.indexOf(h), 1)
+    groups.push(merged)
+  }
+  return groups.map((g) => {
+    const pts = g.flat(), xs = pts.map((p) => p[0]), zs = pts.map((p) => p[1])
+    return { lines: g, x0: Math.min(...xs), x1: Math.max(...xs), z0: Math.min(...zs), z1: Math.max(...zs), cx: (Math.min(...xs) + Math.max(...xs)) / 2, cz: (Math.min(...zs) + Math.max(...zs)) / 2 }
+  }).sort((a, b) => a.cz - b.cz || a.cx - b.cx)
+}
+
+/** Each row's plots in their groups (6 / 10 / 6 …, split where the link blocks are), north to south */
+export function rowGroups(row) {
+  const ps = PLOTS.filter((p) => p.row === row).sort((a, b) => a.z0 - b.z0), out = []
+  for (const p of ps) { const g = out.at(-1); if (g && p.z0 - g.at(-1).z1 < 1) g.push(p); else out.push([p]) }
+  return out.map((g) => ({ row, plots: g, x0: g[0].x0, x1: g[0].x1, z0: g[0].z0, z1: g.at(-1).z1 }))
+}
