@@ -184,6 +184,11 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
     scene.remove(g); chunks.delete(name); renderer.shadowMap.needsUpdate = true
   }
   const has = (name) => chunks.has(name)
+  // stretch a chunk vertically about y = 0 (the hero: the estate rising out of its plan); its shadows are recast
+  function stretch(name, k) {
+    const g = chunks.get(name); if (!g || g.scale.y === k) return
+    g.scale.y = k; g.updateMatrixWorld(true); renderer.shadowMap.needsUpdate = true
+  }
 
   let size = { w: 4, h: 4, dpr: 1 }
   // camera and line scale for view v in a w × h box (CSS px); nothing is rebuilt, so it is cheap enough to call every frame
@@ -262,5 +267,5 @@ export function makeStage(canvas, { view, ink = '#211e1a', paper = '#efe8da', re
     target.dispose()
     if (!shared) { renderer.dispose(); renderer.forceContextLoss() }
   }
-  return { kit, finish, chunk, drop, has, resize, frame, render, project, worldLight, dispose, scene }
+  return { kit, finish, chunk, drop, has, stretch, resize, frame, render, project, worldLight, dispose, scene }
 }

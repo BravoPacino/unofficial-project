@@ -1,4 +1,4 @@
-// One camera path through world keys { eye, at, fov, shift?, keep?, dt }: dt is the scroll (in screens) from the key
+// One camera path through world keys { eye, at, fov, shift?, tallShift?, keep?, dt }: dt is the scroll (in screens) from the key
 // before. Centripetal Catmull–Rom through the eyes and the points looked at (no loops or overshoot where keys are unevenly
 // spaced), and the distance flown against scroll laid on a monotone cubic, so the speed changes smoothly, never in a jump.
 const lerp = (a, b, t) => a + (b - a) * t
@@ -43,12 +43,14 @@ export function makePath(KEYS) {
     let i = 1; while (i < tab.length - 1 && tab[i] < d) i++
     const u = clamp01((i - 1 + (d - tab[i - 1]) / Math.max(1e-6, tab[i] - tab[i - 1])) / (tab.length - 1))
     const a = KEYS[j], b = KEYS[j + 1], e = smooth(u)
-    const s0 = a.shift || [0, 0], s1 = b.shift || [0, 0], keep = w >= h ? 1 : lerp(a.keep ?? 0.42, b.keep ?? 0.42, e)
+    const keep = w >= h ? 1 : lerp(a.keep ?? 0.42, b.keep ?? 0.42, e)
+    // tallShift: the shift on a tall screen, as given (otherwise the wide shift's sideways part is scaled by keep)
+    const sOf = (k) => (w < h && k.tallShift ? [k.tallShift[0] / keep, k.tallShift[1]] : k.shift || [0, 0]), s0 = sOf(a), s1 = sOf(b)
     const look = { eye: crc(EYES, j, u), at: crc(ATS, j, u), fov: lerp(a.fov, b.fov, e), aspect: keep * (16 / 9), shift: [lerp(s0[0], s1[0], e) * keep, lerp(s0[1], s1[1], e)] }
-    // the sun's shadows cover the ground around where the camera is looking
+    // the sun's shadows cover the ground around where the camera is looking (high up: the whole site, at less detail)
     const dy = look.at[1] - look.eye[1], k = dy < -0.01 ? Math.min(1, -look.eye[1] / dy) : 1
     const gx = lerp(look.eye[0], look.at[0], k), gz = lerp(look.eye[2], look.at[2], k)
-    return { look, shadow: { x: gx, z: gz, r: Math.max(24, Math.min(80, 16 + Math.abs(look.eye[1]) * 1.1)) }, j, u }
+    return { look, shadow: { x: gx, z: gz, r: Math.max(24, Math.min(look.eye[1] > 150 ? 170 : 80, 16 + Math.abs(look.eye[1]) * 1.1)) }, j, u }
   }
   return { cameraAt, TIME, TOTAL: TIME.at(-1) }
 }

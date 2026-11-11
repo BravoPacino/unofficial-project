@@ -105,6 +105,13 @@ export const NOTES = [
   { from: ['villas', -0.5], to: ['end', 0.5], p: toVilla([-3, 10.9, 0.3]), dx: -70, dy: -40, m: { dx: -10, dy: -24 }, title: 'Courtyard Villas', text: '1.5 & 2-storey condominium · 207 units · 4–6 bedrooms · 4 parking · from RM 3.3M' },
   { from: ['villas', -0.3], to: ['villas', 0.9], p: toVilla([2.6, 2, 1.2]), dx: 90, dy: -40, m: { dx: -20, dy: 150 }, title: 'Each 8.4 m wide', text: 'Two kinds: 2-storey with 6 bedrooms, and 1.5-storey with 4 bedrooms, each with its own courtyard.' },
 ]
+// the hero (docs/hero-plan.md): the plan seen from straight above (north up), drawn on paper; held while the homes begin
+// to rise out of it; then tipping down to the aerial and on to the gate. It replaces the first two keys of KEYS.
+// shift: on a wide screen the plan sits right of the title; tallShift: on a phone it sits under the title.
+const PLAN_TOP = { id: 'plan', eye: [0, 390, 3.5], at: [0, 0, 3], fov: 50, keep: 0.4, shift: [-0.36, 0.03], tallShift: [0, 0.06] }
+export const HERO_KEYS = [PLAN_TOP, { ...PLAN_TOP, id: 'rise', dt: 0.5 }, { ...KEYS[1], id: 'aerial', dt: 1.0 }, ...KEYS.slice(2)]
+export const HERO_NOTES = NOTES.map((n, i) => (i === 0 ? { ...n, from: ['aerial', 0.2] } : n))
+
 // where the form rises (screens from the key named), and the nav links' targets
 export const FORM = ['villas', 0.9]
 export const ANCHORS = { about: 'plan', facilities: 'gate', residences: 'homes', enquire: 'end' }

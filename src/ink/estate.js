@@ -28,7 +28,8 @@ export function estate(kit, { inside = () => true, faint = false, trim = 0, skip
   // the street ground has a hole where the site sinks below it (the drives, the rows and the valley inside the Homes
   // and the east outer row): without it, it would lie over the valley floor
   if (inside(0, 0)) {
-    const [ax, az] = W(-200, -200), [bx, bz] = W(716, 989), [hx0, hz0] = W(99.5, 90), [hx1, hz1] = W(403.5, 705)
+    // its outer edge lies far past any view's edge (the hero sees the whole site from high above)
+    const [ax, az] = W(-1400, -1000), [bx, bz] = W(1900, 1800), [hx0, hz0] = W(99.5, 90), [hx1, hz1] = W(403.5, 705)
     const sh = new THREE.Shape([[ax, -az], [bx, -az], [bx, -bz], [ax, -bz]].map(([x, y]) => new THREE.Vector2(x, y)))
     sh.holes.push(new THREE.Path([[hx0, -hz0], [hx0, -hz1], [hx1, -hz1], [hx1, -hz0]].map(([x, y]) => new THREE.Vector2(x, y))))
     kit.mesh(new THREE.ShapeGeometry(sh).rotateX(-Math.PI / 2).translate(0, LEVEL.G - 0.01, 0), WHITE, { line: false, cast: false })
