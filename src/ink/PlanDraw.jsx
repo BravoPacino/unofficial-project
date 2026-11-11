@@ -8,6 +8,10 @@ import plan from '../data/sitePlan.js'
 // still: drawn at once. fit: the plan scaled into the svg's own box (no gRef transform needed), as on the sectioned page.
 const rnd = (i) => { const x = Math.sin(i * 12.9898) * 43758.5453; return x - Math.floor(x) }
 
+// left out of the drawing: the triangle that marks R (the treehouse) on the plan, drawn there three times over. The data
+// keeps it: the estate places the treehouse by it (places.js)
+const SKIP = new Set(['aqua-lb2-r'])
+
 function pieces() {
   const out = []
   const len = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1)
@@ -18,6 +22,19 @@ function pieces() {
   })
   plan.rects.forEach(([x, y, w, h, g, fill], i) => { if (!fill) out.push({ d: `M${x} ${y}h${w}v${h}h${-w}Z`, g, y: y + h / 2, n: 2 * (w + h), i: 2000 + i }) })
   plan.circles.forEach(([cx, cy, r, g], i) => out.push({ d: `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0`, g, y: cy, n: 2 * Math.PI * r, i: 3000 + i }))
+  // the source SVG draws some lines and curves twice (where they overlap they print twice as dark): keep each once
+  const seen = new Set(), r = (v) => Math.round(v * 2) / 2
+  const keyOf = (p) => {
+    const m = p.d.match(/^M(-?[\d.]+) (-?[\d.]+)L(-?[\d.]+) (-?[\d.]+)$/)
+    if (!m) return p.d
+    const [x1, y1, x2, y2] = m.slice(1).map(Number).map(r), a = `${x1},${y1}`, b = `${x2},${y2}`
+    return a < b ? `${a} ${b}` : `${b} ${a}`
+  }
+  for (let i = out.length - 1; i >= 0; i--) {
+    const k = keyOf(out[i])
+    if (SKIP.has(out[i].g) || seen.has(k)) out.splice(i, 1)
+    else seen.add(k)
+  }
   // when each line starts (s) and how long it takes (s): the edge and drives, then the plots north to south, then the valley
   const long = out.filter((p) => !p.g && p.n > 150).sort((a, b) => b.n - a.n)
   long.forEach((p, k) => { p.t = 0.05 + 0.5 * (k / Math.max(1, long.length - 1)); p.dur = 0.9 })
