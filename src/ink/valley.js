@@ -131,23 +131,29 @@ export function ownDesigns(k) {
 }
 
 /** The planting along both rows' faces (AQUA F, designer landscape): a low planter, trees standing in it */
-export function edges(k, zMin = -108, zMax = 93) {
+// clear(z): stretches with no tree (in front of the villa the take ends at)
+export function edges(k, zMin = -108, zMax = 93, clear = () => false) {
   for (const p of parts('aqua-lb2-f')) {
     if (p.z1 < zMin || p.z0 > zMax) continue
     const west = p.cx < -4, x0 = west ? FACE_W : FACE_E - 1.3, x1 = west ? FACE_W + 1.3 : FACE_E
     if ((west && p.cx > -13.6) || (!west && p.cx < 6.4)) continue        // one planter per side: draw it from the outer line
     k.slabShape([[x0, p.z0], [x1, p.z0], [x1, p.z1], [x0, p.z1]], 0, 0.5, true, 0.86)
     leaves({ seg: (pairs, w) => k.seg(pairs.map(([a, b]) => [[a[0], a[2] + 0.55, a[1]], [b[0], b[2] + 0.55, b[1]]]), w) }, x0 + 0.2, x1 - 0.2, p.z0 + 0.3, p.z1 - 0.3, 0, 0.7, west ? 5 : 9)
-    for (let z = p.z0 + 5, i = 0; z < p.z1 - 3; z += 11, i++) k.tree((x0 + x1) / 2, z, 9 + (i % 3), 2.6, i * 3 + (west ? 1 : 2))
+    for (let z = p.z0 + 5, i = 0; z < p.z1 - 3; z += 11, i++) if (!clear(z)) k.tree((x0 + x1) / 2, z, 9 + (i % 3), 2.6, i * 3 + (west ? 1 : 2))
   }
 }
 
 /** The two rows' pool-side faces, group by group (villaRow, the Courtyard Villas facade traced from the render) */
-export function facades(k, zMin = -Infinity, zMax = Infinity) {
+// hole(plot): plots another drawing stands on (the villa the take ends at, with its neighbours): the row is drawn in runs
+export function facades(k, zMin = -Infinity, zMax = Infinity, hole = () => false) {
   for (const row of ['westRow', 'eastRow']) for (const g of rowGroups(row)) {
     if (g.z1 < zMin || g.z0 > zMax) continue
-    const n = g.plots.length
-    if (row === 'westRow') villaRow(k, { n, ox: FACE_W, oz: g.z1, ry: Math.PI / 2, ground: false, yard: false })
-    else villaRow(k, { n, ox: FACE_E, oz: g.z0, ry: -Math.PI / 2, ground: false, yard: false })
+    const runs = []
+    for (const p of g.plots) { if (hole(p)) { runs.push([]); continue } if (!runs.length) runs.push([]); runs.at(-1).push(p) }
+    for (const r of runs.filter((r) => r.length)) {
+      const n = r.length
+      if (row === 'westRow') villaRow(k, { n, ox: FACE_W, oz: r.at(-1).z1, ry: Math.PI / 2, ground: false, yard: false })
+      else villaRow(k, { n, ox: FACE_E, oz: r[0].z0, ry: -Math.PI / 2, ground: false, yard: false })
+    }
   }
 }

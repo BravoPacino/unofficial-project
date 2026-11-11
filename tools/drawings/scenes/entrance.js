@@ -12,10 +12,11 @@ function plant(k, x, z, h, n, L, seed) {
   k.seg(out, true)
 }
 
-export default function entrance(k) {
+// only: just the portal and the guard house under it (the one take sets them into the masterplan, which has the rest)
+export default function entrance(k, { only = false } = {}) {
   const { box, seg, tree, bush, line } = k
   const eye = [-13.5, 1.6, 16]
-  k.groundPlane()
+  if (!only) k.groundPlane()
 
   // ── 大门框：左墙、右墙、厚屋顶板（门框进深 14 m）
   const X0 = -8, X1 = 8, D = 14, H = 8.6, T = 1.1
@@ -52,6 +53,7 @@ export default function entrance(k) {
   seg([[[X0 + 0.9, 0.01, 6], [X0 + 0.9, 0.01, -D]], [[g0 - 0.8, 0.01, 6], [g0 - 0.8, 0.01, -D]]], true)
   box(g0 - 0.5, 0.6, -1.2, 0.36, 1.2, 0.36)
   seg([[[g0 - 0.6, 1.0, -1.2], [g0 - 0.6 - 3.0, 1.0 + 5.2, -1.2]], [[g0 - 0.4, 1.0, -1.2], [g0 - 0.4 - 3.0, 1.0 + 5.2, -1.2]]])
+  if (only) return { eye, at: [1.5, 5.2, -4], fov: 52 }
   // 门框前面左边：矮墙花池
   box(-11.5, 0.5, 4.2, 6.4, 1.0, 0.4); box(-14.5, 0.5, 2.0, 0.4, 1.0, 4.8); box(-11.5, 1.3, 2.6, 6.2, 0.6, 3.2, { soft: true, edges: false })
   for (const [x, z, h, n, L] of [[-12, 2.6, 1.6, 10, 1.6], [-9.5, 2.4, 1.2, 8, 1.3], [-14, 3.2, 0.9, 8, 1.0]]) plant(k, x, z + 0.0, h, n, L, x * z)

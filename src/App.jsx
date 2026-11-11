@@ -15,7 +15,7 @@ import Footer from './components/Footer'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { gsap } from 'gsap'
 import Masterplan from './components/Masterplan'
-import Flight from './ink/Flight'
+import Take from './ink/Take'
 import { lenisRef } from './lib/lenis'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -74,7 +74,7 @@ function App() {
               </> : <>
                 <Location scrub />
                 <Masterplan />
-                <Flight onFail={onFail} />
+                <Take onFail={onFail} />
               </>}
             </main>
             <Footer />

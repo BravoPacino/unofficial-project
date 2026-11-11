@@ -12,7 +12,8 @@ const WHITE = 0.97, SLAB = 0.93, ROAD = 0.86
  * faint: the plots drawn as ghosts (the far view), not as white masses with full edges.
  */
 // trim: metres of the two inner rows' depth, from their pool-side face, left out because the valley draws them (valley.js)
-export function estate(kit, { inside = () => true, faint = false, trim = 0 } = {}) {
+// skip(plot): plots another drawing stands on (the two homes the take ends at, with their neighbours)
+export function estate(kit, { inside = () => true, faint = false, trim = 0, skip = () => false } = {}) {
   const line = faint ? 'ghost' : 'soft'
   const slab = (x0, x1, z0, z1, y, t = 0.3, a = SLAB, o = {}) => {
     const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2
@@ -38,6 +39,7 @@ export function estate(kit, { inside = () => true, faint = false, trim = 0 } = {
   // ── plots: Courtyard Villas from the valley floor to the walkway level, with the set-back top storey; Courtyard
   //    Homes from the street level up four storeys
   for (const p of PLOTS) {
+    if (skip(p)) continue
     if (p.row === 'homes' || p.row === 'homesN') {
       mass(p.x0 + 0.3, p.x1 - 0.3, p.z0 + 0.3, p.z1 - 0.3, LEVEL.G, LEVEL.G + 12.6)
       continue
@@ -67,7 +69,7 @@ export function estate(kit, { inside = () => true, faint = false, trim = 0 } = {
     }
   }
   { const [x0, z0] = W(99.5, 90), [x1, z1] = W(403.5, 123); slab(x0, x1, z0, z1, LEVEL.L2, 0.4) }   // north: the walkway across the top
-  { const [x0, z0] = W(99.5, 629), [x1, z1] = W(403.5, 705); slab(x0, x1, z0, z1, LEVEL.G, 0.4) }   // south: the garden, at the gate's level
+  { const [x0, z0] = W(99.5, 629), [x1, z1] = W(403.5, 705); slab(x0, x1, z0, z1, LEVEL.L2, 0.4) }  // south: the podium over the lobby, its deck a garden
 
   // ── bridges across the drives (AERO I), from the plan's own outlines, at the walkway level
   const br = FACILITY['aero-l2-i']
