@@ -90,9 +90,10 @@ Start the dev server first: `npx vite --port 4390`. The test page is `/unofficia
 
 ## The one take (the page itself)
 
-The site's main page is one camera through the drawings (`src/ink/Flight.jsx`, stops and notes in `src/ink/route.js`; plan in `docs/animation-plan.md`). Rules learned building it:
+The site's main page is one camera through the estate laid out from the masterplan (`src/ink/Take.jsx`; route, stops and notes in `src/ink/take-route.js`; site data in `src/ink/site.js`; plan in `docs/world-plan.md`). Rules learned building it:
 
-- One scene per stop; at most two alive (this one and the next). Stops change dot by dot (`MIX_FS`: old dots shrink, new grow, about two stipple grains a cell) — never a cross-fade.
+- One world, built in chunks (`stage.chunk / drop`): pieces within R of the camera (80 m on a phone, 110 m elsewhere) are drawn in full, everything else is massing. Keep the phone peak under 120 MB (`tools/ink/gpu-budget.cjs 390 844`).
+- Place things where the masterplan puts them; anything without a published image is drawn in our own hand and marked ○.
 - Light is fixed in the world per stop (`stage.worldLight(dir, dwellLook)`); a camera-relative light makes shadows slide as the camera moves. Shadow maps recompute only when the light moves (`renderer.shadowMap.autoUpdate = false`).
 - On the way through, scenes are drawn in full (no ghosting) but keep only the trees inside their subject (`adaptKit(..., { trees })`): a 3D tree in front of a moving camera is a black trunk across the picture.
 - Keep the camera near the angle the scene was traced from (±20°): the back sides were never drawn.

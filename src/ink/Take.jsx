@@ -25,7 +25,8 @@ const PATH = makePath(KEYS), TOTAL = PATH.TOTAL
 const timeOf = ([id, off = 0]) => PATH.TIME[KEYS.findIndex((k) => k.id === id)] + off
 
 // the pieces drawn in full, each over a box of the world (x0, x1, z0, z1): built while the camera is within R of it
-const R = 110
+// (less far ahead on a phone, where the GPU memory a page may hold is smaller)
+const R = typeof matchMedia !== 'undefined' && matchMedia('(max-width: 700px)').matches ? 80 : 110
 const PIECES = [
   { name: 'gate', box: [-50, 45, 85, 150], build: (k) => gate(k) },
   { name: 'driveS', box: [36, 57, 20, 95], build: (k) => drive(k, 20, 95) },

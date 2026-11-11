@@ -8,7 +8,7 @@ const { chromium } = require('playwright'), { execFileSync } = require('child_pr
   const p = await (await b.newContext({ viewport: { width: +W, height: +H }, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile })).newPage()
   const errs = []; p.on('pageerror', (e) => errs.push(e.message))
   await p.goto('http://localhost:4390/unofficial-project/?film', { waitUntil: 'networkidle' }); await p.waitForTimeout(6000)
-  const { end, f0, f1 } = await p.evaluate(() => { const f = document.querySelector('.flight'); return { end: document.documentElement.scrollHeight - innerHeight, f0: f.offsetTop, f1: f.offsetTop + f.offsetHeight - innerHeight } })
+  const { end, f0, f1 } = await p.evaluate(() => { const f = document.querySelector('.take, .flight'); return { end: document.documentElement.scrollHeight - innerHeight, f0: f.offsetTop, f1: f.offsetTop + f.offsetHeight - innerHeight } })
   const ease = (u) => { const e = 0.04; return u < e ? (u * u) / (2 * e * (1 - e)) : u > 1 - e ? 1 - ((1 - u) * (1 - u)) / (2 * e * (1 - e)) : (u - e / 2) / (1 - e) }
   const settle = () => p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 60)))))
   for (let f = 0; f < n; f++) {
