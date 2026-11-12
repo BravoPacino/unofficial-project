@@ -167,6 +167,7 @@ export default function Masterplan() {
   const mm = gsap.matchMedia()
   mm.add('(min-width: 761px)', () => {
   resetAll()
+  let shown = 0
 
   ScrollTrigger.create({
     trigger: sectionRef.current,
@@ -195,6 +196,15 @@ export default function Masterplan() {
           if (group) group.classList.remove('active')
         }
       })
+
+      // the list is taller than its box: keep the facility that just lit up in the middle of it, so its name is always in view
+      if (activeCount !== shown) {
+        shown = activeCount
+        const li = items[activeCount - 1]
+        const max = listEl.scrollHeight - listEl.clientHeight
+        const to = !li ? 0 : li.getBoundingClientRect().top - listEl.getBoundingClientRect().top + listEl.scrollTop - (listEl.clientHeight - li.offsetHeight) / 2
+        gsap.to(listEl, { scrollTop: Math.max(0, Math.min(max, to)), duration: 0.45, ease: 'power2.out', overwrite: true })
+      }
     },
     onLeaveBack: resetAll,
   })
