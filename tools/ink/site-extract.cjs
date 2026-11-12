@@ -1,5 +1,5 @@
 // 从 Masterplan.jsx 里那张总平面图 SVG（照开发商手册第 5 页描的，516 × 789，北在上）抽出几何，写成 src/data/sitePlan.js，
-// 给一镜到底的世界（src/ink/site.js）用。SVG 改了就重跑：node tools/ink/site-extract.cjs
+// 给一镜到底的世界（src/ink/site.js）用。npm run dev / npm run build 之前自动跑（predev / prebuild），黑白的平面图（首屏、小地图）就永远跟黑金的同步；手动：npm run plan
 const fs = require('fs'), path = require('path')
 const root = path.join(__dirname, '..', '..')
 const src = fs.readFileSync(path.join(root, 'src/components/Masterplan.jsx'), 'utf8')

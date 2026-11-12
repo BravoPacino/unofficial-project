@@ -4,7 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "plan": "node tools/ink/site-extract.cjs",
+    "predev": "node tools/ink/site-extract.cjs",
     "dev": "vite",
+    "prebuild": "node tools/ink/site-extract.cjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

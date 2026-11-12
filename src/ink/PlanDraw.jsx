@@ -12,9 +12,11 @@ function pieces() {
   const out = []
   const len = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1)
   plan.lines.forEach(([x1, y1, x2, y2, g], i) => out.push({ d: `M${x1} ${y1}L${x2} ${y2}`, g, y: (y1 + y2) / 2, n: len(x1, y1, x2, y2), i }))
-  plan.paths.forEach(({ d, g }, i) => {
+  // a path the masterplan fills and does not stroke (the thin curved pieces at the corners of the ring) is a shape, not a line:
+  // drawn as a line its outline came out as a thick double stroke, so it is filled here too, and fades in instead of drawing
+  plan.paths.forEach(({ d, g, stroke, fill }, i) => {
     const m = d.match(/-?\d+\.?\d*/g)?.map(Number) || [0, 0]
-    out.push({ d, g, y: m[1], n: 60, i: 1000 + i })
+    out.push({ d, g, y: m[1], n: 60, i: 1000 + i, solid: !stroke && !!fill })
   })
   plan.rects.forEach(([x, y, w, h, g, fill], i) => { if (!fill) out.push({ d: `M${x} ${y}h${w}v${h}h${-w}Z`, g, y: y + h / 2, n: 2 * (w + h), i: 2000 + i }) })
   plan.circles.forEach(([cx, cy, r, g], i) => out.push({ d: `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0`, g, y: cy, n: 2 * Math.PI * r, i: 3000 + i }))
@@ -48,7 +50,7 @@ export default function PlanDraw({ gRef, tone = 'paper', still = false, fit = fa
     <svg className={`plan-draw plan-${tone}${still ? ' plan-still' : ''} ${className}`} aria-hidden="true" {...(fit ? { viewBox: '20 20 480 750', preserveAspectRatio: 'xMidYMid meet' } : {})}>
       <g ref={gRef}>
         {all.map((p) => (
-          <path key={p.i} d={p.d} pathLength="1" className={p.g ? 'pg' : undefined} style={{ animationDelay: `${p.t.toFixed(2)}s`, animationDuration: `${p.dur}s` }} />
+          <path key={p.i} d={p.d} pathLength="1" className={[p.g && 'pg', p.solid && 'pf'].filter(Boolean).join(' ') || undefined} style={{ animationDelay: `${p.t.toFixed(2)}s`, animationDuration: `${p.dur}s` }} />
         ))}
       </g>
       <style>{`
@@ -56,12 +58,15 @@ export default function PlanDraw({ gRef, tone = 'paper', still = false, fit = fa
         .plan-draw path { fill: none; stroke: var(--plan-ink); stroke-linecap: round; stroke-linejoin: round;
           stroke-dasharray: 1 1; stroke-dashoffset: 1; animation-name: plan-draw; animation-timing-function: cubic-bezier(.4,.1,.3,1); animation-fill-mode: forwards; }
         .plan-draw path.pg { stroke: var(--plan-ink-2); }
+        .plan-draw path.pf { stroke: none; fill: var(--plan-ink); stroke-dasharray: none; opacity: 0; animation-name: plan-fill; }
+        .plan-draw path.pf.pg { fill: var(--plan-ink-2); }
         .plan-paper { --plan-ink: rgba(33,30,26,.82); --plan-ink-2: rgba(33,30,26,.55); }
         .plan-dark { --plan-ink: rgba(200,168,107,.75); --plan-ink-2: rgba(200,168,107,.5); }
         .plan-draw[viewBox] path { stroke-width: 1.3; }
-        .plan-still path { animation: none; stroke-dashoffset: 0; }
+        .plan-still path { animation: none; stroke-dashoffset: 0; opacity: 1; }
         @keyframes plan-draw { to { stroke-dashoffset: 0; } }
-        @media (prefers-reduced-motion: reduce) { .plan-draw path { animation: none; stroke-dashoffset: 0; } }
+        @keyframes plan-fill { to { opacity: 1; } }
+        @media (prefers-reduced-motion: reduce) { .plan-draw path { animation: none; stroke-dashoffset: 0; opacity: 1; } }
       `}</style>
     </svg>
   )
